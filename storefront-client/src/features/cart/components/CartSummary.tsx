@@ -5,6 +5,7 @@ import { useAppSelector } from "@/src/store/hooks";
 import { selectCartTotal, selectCartCount } from "../slices/cartSlice";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { formatPrice } from "@/src/shared/utils/formatPrice";
 
 export default function CartSummary() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function CartSummary() {
 
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Items ({count})</span>
-        <span>₪{total.toFixed(2)}</span>
+        <span>{formatPrice(total)}</span>
       </div>
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Shipping</span>
@@ -29,7 +30,7 @@ export default function CartSummary() {
 
       <div className="flex justify-between font-bold text-lg">
         <span>Total</span>
-        <span>₪{total.toFixed(2)}</span>
+        <span>{formatPrice(total)}</span>
       </div>
 
       <Button

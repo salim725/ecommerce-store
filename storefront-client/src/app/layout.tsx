@@ -1,49 +1,29 @@
-"use client";
+// src/app/layout.tsx
+// Remove "use client" from the top level
+// Keep "use client" only on the inner AppContent component
 
-import { useEffect } from "react";
-import { Provider } from "react-redux";
-import { store } from "@/src/store/store";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/src/shared/components/Navbar";
-import { fetchMe } from "@/src/features/auth/slices/authSlice";
-import { loadGuestCart } from "@/src/features/cart/slices/cartSlice";
-import { getAuthToken, setAuthToken } from "@/src/shared/utils/authToken";
+import ClientLayout from "./ClientLayout"; // we'll create this below
 
-function AppContent({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // On every page load, try to restore the user session from the saved token
-    const token = getAuthToken();
-    if (token) {
-      setAuthToken(token);
-      store.dispatch(fetchMe());
-    } else {
-      store.dispatch(loadGuestCart());
-    }
-  }, []);
-
-  return (
-    <>
-      <Navbar />
-      {children}
-    </>
-  );
-}
+export const metadata: Metadata = {
+  title: {
+    default: "Storefront",
+    template: "%s | Storefront", // e.g. "Sneakers | Storefront"
+  },
+  description: "Your one-stop online shop for the best products.",
+  openGraph: {
+    siteName: "Storefront",
+    type: "website",
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="min-h-full flex flex-col antialiased">
-        <Provider store={store}>
-          <AppContent>{children}</AppContent>
-          <ToastContainer position="top-right" autoClose={3000} theme="light" />
-        </Provider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
 }
-
-//<Provider> wraps the entire app so every component can access the Redux store. 
-// <ToastContainer> is placed once here — then anywhere in the app you can call 
-// toast.success("Done!") and it will show up.

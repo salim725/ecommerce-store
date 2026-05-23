@@ -6,6 +6,7 @@ import { Autoplay, Pagination } from "swiper/modules";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/src/shared/utils/formatPrice";
 
 // Import Swiper styles
 import "swiper/css";
@@ -42,7 +43,7 @@ export default function HeroCarousel() {
                 <h2 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow">
                   {product.name}
                 </h2>
-                <p className="text-xl mb-6 drop-shadow">₪{product.price.toFixed(2)}</p>
+                <p className="text-xl mb-6 drop-shadow">{formatPrice(product.price)}</p>
                 <Button asChild size="lg" variant="secondary">
                   <Link href={`/products/${product._id}`}>Shop Now</Link>
                 </Button>

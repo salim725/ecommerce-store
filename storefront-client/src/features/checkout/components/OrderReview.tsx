@@ -9,6 +9,7 @@ import type { ShippingData } from "./ShippingForm";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "react-toastify";
+import { formatPrice } from "@/src/shared/utils/formatPrice";
 
 interface Props {
   shippingData: ShippingData;
@@ -55,7 +56,7 @@ export default function OrderReview({ shippingData, onBack }: Props) {
               <span className="text-muted-foreground">× {item.quantity}</span>
             </span>
             <span className="font-medium">
-              ₪{(item.product.price * item.quantity).toFixed(2)}
+              {formatPrice(item.product.price * item.quantity)}
             </span>
           </div>
         ))}
@@ -77,7 +78,7 @@ export default function OrderReview({ shippingData, onBack }: Props) {
       {/* Total */}
       <div className="flex justify-between font-bold text-lg">
         <span>Total</span>
-        <span>₪{total.toFixed(2)}</span>
+        <span>{formatPrice(total)}</span>
       </div>
 
       {/* Action buttons */}

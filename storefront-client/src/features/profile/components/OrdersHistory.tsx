@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag } from "lucide-react";
+import { formatPrice } from "@/src/shared/utils/formatPrice";
+import { formatDate } from "@/src/shared/utils/formatDate";
+import Spinner from "@/src/shared/components/Spinner";
 
 // Status badge colors
 const statusConfig = {
@@ -15,8 +18,16 @@ const statusConfig = {
 };
 export default function OrdersHistory() {
     const router = useRouter();
-    const { orders } = useAppSelector((s) => s.profile);
-  
+    const { orders, isLoading } = useAppSelector((s) => s.profile);
+
+    if (isLoading && orders.length === 0) {
+      return (
+        <div className="flex justify-center py-10">
+          <Spinner size="lg" />
+        </div>
+      );
+    }
+
     // Empty state
     if (orders.length === 0) {
       return (
@@ -43,9 +54,6 @@ export default function OrdersHistory() {
   
         {orders.map((order) => {
           const status = statusConfig[order.status] ?? statusConfig.pending;
-          const date = new Date(order.createdAt).toLocaleDateString("en-US", {
-            year: "numeric", month: "short", day: "numeric",
-          });
           const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
   
           return (
@@ -56,9 +64,9 @@ export default function OrdersHistory() {
               <span className="font-mono text-xs text-muted-foreground truncate">
                 #{order._id.slice(-8)}
               </span>
-              <span className="text-sm">{date}</span>
+              <span className="text-sm">{formatDate(order.createdAt)}</span>
               <span className="text-sm">{itemCount} item{itemCount !== 1 ? "s" : ""}</span>
-              <span className="font-semibold">₪{order.totalPrice.toFixed(2)}</span>
+              <span className="font-semibold">{formatPrice(order.totalPrice)}</span>
               <div className="flex items-center justify-between gap-2">
                 <span className={`text-xs font-medium px-2 py-1 rounded-full ${status.className}`}>
                   {status.label}

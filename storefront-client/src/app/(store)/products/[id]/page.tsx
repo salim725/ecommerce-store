@@ -9,9 +9,27 @@ import { addItem } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Minus, Plus } from "lucide-react";
-
+import { formatPrice } from "@/src/shared/utils/formatPrice";
+import Spinner from "@/src/shared/components/Spinner";
+// This runs on the server — fetches product name for the <title> tag
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/products/${params.id}`,
+    );
+    const product = await res.json();
+    return {
+      title: product.name,
+      description: product.description || `Buy ${product.name} on Storefront`,
+      openGraph: {
+        images: [product.imageUrl],
+      },
+    };
+  } catch {
+    return { title: "Product" };
+  }
+}
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
@@ -41,25 +59,16 @@ export default function ProductDetailPage() {
   const decreaseQty = () => setQuantity((q) => Math.max(1, q - 1));
   const increaseQty = () =>
     setQuantity((q) => Math.min(product?.stock ?? 1, q + 1));
-  // Loading state
   if (isLoading) {
     return (
       <main className="max-w-5xl mx-auto px-4 py-10">
-        <div className="grid md:grid-cols-2 gap-10">
-          <Skeleton className="h-96 w-full rounded-xl" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-6 w-1/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-12 w-full mt-6" />
-          </div>
+        <div className="flex justify-center py-10">
+          <Spinner size="lg" />
         </div>
       </main>
     );
   }
 
-  //The skeleton mirrors the 2-column layout — image on the left, details on the right — so there's no layout shift when the real content loads.
   // Error state
   if (error || !product) {
     return (
@@ -104,7 +113,7 @@ export default function ProductDetailPage() {
 
           {/* Price */}
           <p className="text-2xl font-bold text-primary">
-            ₪{product.price.toFixed(2)}
+            {formatPrice(product.price)}
           </p>
 
           {/* Description */}

@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import Spinner from "@/src/shared/components/Spinner";
 
 interface ProfileFormData {
   name: string;
@@ -30,6 +31,14 @@ export default function ProfileForm() {
       });
     }
   }, [profile, reset]);
+
+  if (isLoading && !profile) {
+    return (
+      <div className="flex justify-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   const onSubmit = async (data: ProfileFormData) => {
     try {

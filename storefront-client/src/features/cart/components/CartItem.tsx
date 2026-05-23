@@ -7,6 +7,7 @@ import type { CartItem as CartItemType } from "../slices/cartSlice";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { formatPrice } from "@/src/shared/utils/formatPrice";
 
 export default function CartItem({ item }: { item: CartItemType }) {
   const dispatch = useAppDispatch();
@@ -37,10 +38,10 @@ export default function CartItem({ item }: { item: CartItemType }) {
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{item.product.name}</p>
         <p className="text-sm text-muted-foreground">
-          ₪{item.product.price.toFixed(2)} each
+          {formatPrice(item.product.price)} each
         </p>
         <p className="font-semibold mt-1">
-          ₪{(item.product.price * item.quantity).toFixed(2)}
+          {formatPrice(item.product.price * item.quantity)}
         </p>
       </div>
 

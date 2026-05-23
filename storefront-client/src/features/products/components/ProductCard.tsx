@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { formatPrice } from "@/src/shared/utils/formatPrice";
 
 interface Product {
   _id: string;
@@ -55,7 +56,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </Link>
 
         {/* Price */}
-        <p className="text-lg font-bold">₪{product.price.toFixed(2)}</p>
+        <p className="text-lg font-bold">{formatPrice(product.price)}</p>
 
         {/* Stock status */}
         {product.stock === 0 && (
