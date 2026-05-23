@@ -4,26 +4,19 @@ import uiReducer from "@/src/shared/slices/uiSlice";
 // Placeholder reducers for features not yet built
 import { createSlice } from "@reduxjs/toolkit";
 import authReducer from "@/src/feature/auth/slices/authSlice"
+import productsReducer from "@/src/feature/products/slices/productsSlice";
+import cartReducer from "@/src/feature/cart/slices/cartSlice";
 
 
-const productsPlaceholder = createSlice({
-  name: "products",
-  initialState: { items: [], featured: [], isLoading: false, error: null },
-  reducers: {},
-});
 
-const cartPlaceholder = createSlice({
-  name: "cart",
-  initialState: { items: [], isLoading: false, error: null },
-  reducers: {},
-});
+
 
 export const store = configureStore({
   reducer: {
     ui: uiReducer,
     auth: authReducer,
-    products: productsPlaceholder.reducer,
-    cart: cartPlaceholder.reducer,
+    products: productsReducer,
+    cart: cartReducer
   },
 });
 
