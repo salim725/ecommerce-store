@@ -3,9 +3,21 @@ import {
   createAsyncThunk,
   createSelector,
   PayloadAction,
+  type ThunkDispatch,
+  type UnknownAction,
 } from "@reduxjs/toolkit";
 import { cartApi } from "../api/cartApi";
 import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
+
+type CartDispatch = ThunkDispatch<unknown, unknown, UnknownAction>;
+
+/** GET /cart returns populated products; POST/PUT/DELETE return product IDs only. */
+async function loadAuthenticatedCartItems(dispatch: CartDispatch): Promise<CartItem[]> {
+  const result = await dispatch(
+    cartApi.endpoints.getCart.initiate(undefined, { forceRefetch: true }),
+  ).unwrap();
+  return result.items;
+}
 
 export interface CartItem {
   _id: string;
@@ -60,10 +72,7 @@ export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      const result = await dispatch(
-        cartApi.endpoints.getCart.initiate(undefined, { forceRefetch: true }),
-      ).unwrap();
-      return result.items;
+      return await loadAuthenticatedCartItems(dispatch);
     } catch (err: unknown) {
       return rejectWithValue(getErrorMessage(err, "Failed to fetch cart"));
     }
@@ -86,13 +95,14 @@ export const addItem = createAsyncThunk(
   ) => {
     try {
       if (isAuthenticated) {
-        const result = await dispatch(
+        await dispatch(
           cartApi.endpoints.addToCart.initiate({
             productId: product._id,
             quantity,
           }),
         ).unwrap();
-        return { items: result.items, isAuthenticated };
+        const items = await loadAuthenticatedCartItems(dispatch);
+        return { items, isAuthenticated };
       } else {
         // Save to localStorage
         const guestCart = getGuestCart();
@@ -130,13 +140,14 @@ export const updateItem = createAsyncThunk(
   ) => {
     try {
       if (isAuthenticated) {
-        const result = await dispatch(
+        await dispatch(
           cartApi.endpoints.updateCartItem.initiate({
             productId: itemId,
             quantity,
           }),
         ).unwrap();
-        return { items: result.items, isAuthenticated };
+        const items = await loadAuthenticatedCartItems(dispatch);
+        return { items, isAuthenticated };
       } else {
         const guestCart = getGuestCart();
         const item = guestCart.find((i) => i.product._id === itemId);
@@ -159,10 +170,11 @@ export const removeItem = createAsyncThunk(
   ) => {
     try {
       if (isAuthenticated) {
-        const result = await dispatch(
+        await dispatch(
           cartApi.endpoints.removeCartItem.initiate(itemId),
         ).unwrap();
-        return { items: result.items, isAuthenticated };
+        const items = await loadAuthenticatedCartItems(dispatch);
+        return { items, isAuthenticated };
       } else {
         const guestCart = getGuestCart().filter(
           (i) => i.product._id !== itemId,
@@ -183,22 +195,17 @@ export const mergeCarts = createAsyncThunk(
     try {
       const guestCart = getGuestCart();
       if (guestCart.length === 0) {
-        const result = await dispatch(
-          cartApi.endpoints.getCart.initiate(undefined, {
-            forceRefetch: true,
-          }),
-        ).unwrap();
-        return result.items;
+        return loadAuthenticatedCartItems(dispatch);
       }
       const localItems = guestCart.map((i) => ({
         productId: i.product._id,
         quantity: i.quantity,
       }));
-      const result = await dispatch(
+      await dispatch(
         cartApi.endpoints.syncCart.initiate({ items: localItems }),
       ).unwrap();
       clearGuestCart();
-      return result.items;
+      return loadAuthenticatedCartItems(dispatch);
     } catch (err: unknown) {
       return rejectWithValue(getErrorMessage(err, "Failed to merge cart"));
     }
