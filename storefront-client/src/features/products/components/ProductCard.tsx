@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAppDispatch } from "@/src/store/hooks";
-import { addToCart } from "@/src/feature/cart/slices/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
+import { addItem } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,10 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
 
   const handleAddToCart = () => {
-    dispatch(addToCart({ product, quantity: 1 }));
+    dispatch(addItem({ product, quantity: 1, isAuthenticated }));
     toast.success(`${product.name} added to cart 🛒`);
   };
   return (

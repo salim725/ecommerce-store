@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { logout } from "@/src/feature/auth/slices/authSlice"; 
+import { logout } from "@/src/features/auth/slices/authSlice";
+import { clearCart, loadGuestCart } from "@/src/features/cart/slices/cartSlice"; 
 import { toast } from "react-toastify";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
-import { selectCartCount } from "@/src/feature/cart/slices/cartSlice";
+import { selectCartCount } from "@/src/features/cart/slices/cartSlice";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
@@ -18,6 +19,8 @@ export default function Navbar() {
   //Reads auth state to decide what to show. Reads cart item count for the badge.
   const handleLogout = async () => {
     await dispatch(logout());
+    dispatch(clearCart());
+    dispatch(loadGuestCart());
     toast.success("Logged out successfully");
   };
 

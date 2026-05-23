@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { fetchProductById } from "@/src/feature/products/slices/productsSlice";
-import { addToCart } from "@/src/feature/cart/slices/cartSlice";
+import { fetchProductById } from "@/src/features/products/slices/productsSlice";
+import { addItem } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ export default function ProductDetailPage() {
     isLoading,
     error,
   } = useAppSelector((state) => state.products);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
 
   const [quantity, setQuantity] = useState(1);
   //useParams reads the [id] from the URL.
@@ -32,7 +33,7 @@ export default function ProductDetailPage() {
   // This handles navigation between product pages.
   const handleAddToCart = () => {
     if (!product) return;
-    dispatch(addToCart({ product, quantity }));
+    dispatch(addItem({ product, quantity, isAuthenticated }));
     toast.success(`${product.name} added to cart 🛒`);
   };
 

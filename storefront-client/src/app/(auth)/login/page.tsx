@@ -1,4 +1,6 @@
-import LoginForm from "@/src/feature/auth/components/LoginForm";export default function LoginPage() {
+import LoginForm from "@/src/features/auth/components/LoginForm";
+
+export default function LoginPage() {
     return (
       <main className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">

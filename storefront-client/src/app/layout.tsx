@@ -7,17 +7,19 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 import Navbar from "@/src/shared/components/Navbar";
-import { fetchMe } from "../feature/auth/slices/authSlice";
-import { loadGuestCart, clearCart } from "@/src/feature/cart/slices/cartSlice";
+import { fetchMe } from "@/src/features/auth/slices/authSlice";
+import { loadGuestCart } from "@/src/features/cart/slices/cartSlice";
+import { getAuthToken, setAuthToken } from "@/src/shared/utils/authToken";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // On every page load, try to restore the user session from the saved token
-    const token = localStorage.getItem("sf_token");
+    const token = getAuthToken();
     if (token) {
+      setAuthToken(token);
       store.dispatch(fetchMe());
-    }else{
-      store.dispatch(loadGuestCart()); // load guest cart for non-logged-in users
+    } else {
+      store.dispatch(loadGuestCart());
     }
   }, []);
 

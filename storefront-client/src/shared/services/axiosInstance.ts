@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAuthToken, clearAuthToken } from "@/src/shared/utils/authToken";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -10,7 +11,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
       // only runs in browser (not SSR)
-      const token = localStorage.getItem("sf_token"); // grab saved JWT
+      const token = getAuthToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`; // attach it to the request
       }
@@ -28,7 +29,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       // 401 = Unauthorized (token expired)
       if (typeof window !== "undefined") {
-        localStorage.removeItem("sf_token"); // delete the bad token
+        clearAuthToken();
         window.location.href = "/login"; // kick user to login page
       }
     }

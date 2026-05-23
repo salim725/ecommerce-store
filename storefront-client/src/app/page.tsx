@@ -6,9 +6,9 @@ import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
   fetchProducts,
   fetchFeatured,
-} from "@/src/feature/products/slices/productsSlice";
-import HeroCarousel from "@/src/feature/products/components/HeroCarousal";
-import ProductsGrid from "@/src/feature/products/components/ProductsGrid";
+} from "@/src/features/products/slices/productsSlice";
+import HeroCarousel from "@/src/features/products/components/HeroCarousal";
+import ProductsGrid from "@/src/features/products/components/ProductsGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

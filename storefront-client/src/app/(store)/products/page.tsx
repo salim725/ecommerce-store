@@ -3,8 +3,8 @@
 
 import { useEffect } from "react";
 import { useAppDispatch } from "@/src/store/hooks";
-import { fetchProducts } from "@/src/feature/products/slices/productsSlice";
-import ProductsGrid from "@/src/feature/products/components/ProductsGrid";
+import { fetchProducts } from "@/src/features/products/slices/productsSlice";
+import ProductsGrid from "@/src/features/products/components/ProductsGrid";
 
 export default function ProductsPage() {
   const dispatch = useAppDispatch();

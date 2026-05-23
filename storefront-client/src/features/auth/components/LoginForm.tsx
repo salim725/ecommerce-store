@@ -25,11 +25,8 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       await dispatch(login(form)).unwrap();
+      await dispatch(mergeCarts());
       toast.success("Welcome back! 👋");
-      await dispatch(login(form)).unwrap();
-      await dispatch(mergeCarts()); // ← merge guest cart into user cart
-      toast.success("Welcome back! 👋");
-      router.push("/");
       router.push("/");
     } catch (err: any) {
       toast.error(err);

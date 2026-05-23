@@ -1,10 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  mergeCarts,
-  clearCart,
-  loadGuestCart,
-} from "@/src/feature/cart/slices/cartSlice";
-
+import { setAuthToken, clearAuthToken } from "@/src/shared/utils/authToken";
 import {
   registerUser,
   loginUser,
@@ -42,7 +37,7 @@ export const register = createAsyncThunk(
   ) => {
     try {
       const res = await registerUser(data);
-      localStorage.setItem("sf_token", res.data.token); // save token
+      setAuthToken(res.data.token);
       return res.data; // { user, token }
     } catch (err: any) {
       return rejectWithValue(
@@ -63,7 +58,7 @@ export const login = createAsyncThunk(
   ) => {
     try {
       const res = await loginUser(credentials);
-      localStorage.setItem("sf_token", res.data.token);
+      setAuthToken(res.data.token);
       return res.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || "Login failed");
@@ -74,7 +69,7 @@ export const login = createAsyncThunk(
 // LOGOUT thunk
 export const logout = createAsyncThunk("auth/logout", async () => {
   await logoutUser();
-  localStorage.removeItem("sf_token"); // clear the token
+  clearAuthToken();
 });
 
 // GETME thunk — rehydrate session on app start
@@ -146,6 +141,8 @@ const authSlice = createSlice({
       .addCase(fetchMe.rejected, (state) => {
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
+        clearAuthToken();
       });
   },
 });

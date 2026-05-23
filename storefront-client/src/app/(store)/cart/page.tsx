@@ -1,9 +1,9 @@
 "use client";
 
 import { useAppSelector } from "@/src/store/hooks";
-import { selectCartItems } from "@/src/feature/cart/slices/cartSlice";
-import CartItem from "@/src/feature/cart/components/CartItem";
-import CartSummary from "@/src/feature/cart/components/CartSummary";
+import { selectCartItems } from "@/src/features/cart/slices/cartSlice";
+import CartItem from "@/src/features/cart/components/CartItem";
+import CartSummary from "@/src/features/cart/components/CartSummary";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
