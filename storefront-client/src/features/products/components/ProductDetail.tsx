@@ -80,15 +80,15 @@ export default function ProductDetail({ product }: { product: Product }) {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-10">
-      <div className="grid gap-10 lg:grid-cols-[3fr_2fr] lg:gap-12">
+    <main className="mx-auto max-w-7xl px-4 py-8 pb-28 md:pb-10">
+      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 md:gap-10 lg:gap-12">
         <ProductGallery
           name={product.name}
           imageUrl={product.imageUrl}
           images={product.images}
         />
 
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5 md:sticky md:top-24">
           <Breadcrumbs
             category={product.category}
             productName={product.name}
