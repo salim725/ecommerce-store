@@ -48,16 +48,20 @@ export default function CartItem({ item }: { item: CartItemType }) {
       {/* Quantity controls */}
       <div className="flex items-center border rounded-lg">
         <button
+          type="button"
           onClick={() => handleUpdate(item.quantity - 1)}
           disabled={item.quantity <= 1}
           className="p-2 hover:bg-muted transition-colors disabled:opacity-40"
+          aria-label="Decrease quantity"
         >
           <Minus className="w-3 h-3" />
         </button>
         <span className="px-3 text-sm font-medium">{item.quantity}</span>
         <button
+          type="button"
           onClick={() => handleUpdate(item.quantity + 1)}
           className="p-2 hover:bg-muted transition-colors"
+          aria-label="Increase quantity"
         >
           <Plus className="w-3 h-3" />
         </button>

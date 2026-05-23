@@ -8,13 +8,15 @@ import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/src/shared/components/Navbar";
 import Footer from "@/src/shared/components/Footer";
 import { fetchMe } from "@/src/features/auth/slices/authSlice";
-import { loadGuestCart } from "@/src/features/cart/slices/cartSlice";
+import { fetchCart, loadGuestCart } from "@/src/features/cart/slices/cartSlice";
+import { getAuthToken } from "@/src/shared/utils/authToken";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const token = localStorage.getItem("sf_token");
+    const token = getAuthToken();
     if (token) {
       store.dispatch(fetchMe());
+      store.dispatch(fetchCart());
     } else {
       store.dispatch(loadGuestCart());
     }

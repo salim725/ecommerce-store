@@ -1,26 +1,21 @@
-"use client";
-
-import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import {
-  fetchProducts,
-  fetchFeatured,
-} from "@/src/features/products/slices/productsSlice";
-import HeroCarousel from "@/src/features/products/components/HeroCarousal";
-import ProductsGrid from "@/src/features/products/components/ProductsGrid";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
   Truck,
   ShieldCheck,
   RefreshCw,
   Sparkles,
-  Tag,
-  Mail,
 } from "lucide-react";
+import HeroCarousel from "@/src/features/products/components/HeroCarousal";
+import ProductsGrid from "@/src/features/products/components/ProductsGrid";
+import CategoryPills from "@/src/features/products/components/CategoryPills";
+import HomeNewsletter from "@/src/features/products/components/HomeNewsletter";
+import {
+  getProductsServer,
+  getFeaturedServer,
+} from "@/src/features/products/lib/getProductsServer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const TRUST_FEATURES = [
   {
@@ -45,48 +40,18 @@ const TRUST_FEATURES = [
   },
 ] as const;
 
-function CategoryPills() {
-  const { items } = useAppSelector((state) => state.products);
+export default async function HomePage() {
+  const [products, featured] = await Promise.all([
+    getProductsServer(),
+    getFeaturedServer(),
+  ]);
 
-  const categories = useMemo(
-    () => [...new Set(items.map((p) => p.category).filter(Boolean))],
-    [items]
-  );
-
-  if (!categories.length) return null;
-
-  return (
-    <div className="flex flex-wrap justify-center gap-2">
-      {categories.map((category) => (
-        <Button
-          key={category}
-          variant="outline"
-          size="sm"
-          asChild
-          className="rounded-full px-4"
-        >
-          <Link href={`/products?category=${encodeURIComponent(category)}`}>
-            <Tag className="size-3.5" />
-            {category}
-          </Link>
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-export default function HomePage() {
-  const dispatch = useAppDispatch();
-  const { items } = useAppSelector((state) => state.products);
-
-  useEffect(() => {
-    dispatch(fetchFeatured());
-    dispatch(fetchProducts());
-  }, [dispatch]);
+  const categories = [
+    ...new Set(products.map((p) => p.category).filter(Boolean)),
+  ];
 
   return (
     <div className="flex flex-col">
-      {/* Promo strip */}
       <div className="bg-primary text-primary-foreground text-center text-sm py-2.5 px-4">
         <span className="font-medium">Spring Sale</span>
         <span className="mx-2 opacity-60">·</span>
@@ -100,7 +65,6 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* Hero */}
       <section className="relative overflow-hidden border-b">
         <div
           className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,var(--color-muted),transparent)]"
@@ -116,8 +80,8 @@ export default function HomePage() {
               <span className="block text-muted-foreground">your everyday.</span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-              Discover curated essentials, limited drops, and customer favorites —
-              delivered fast with secure checkout.
+              Discover curated essentials, limited drops, and customer favorites
+              — delivered fast with secure checkout.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button size="lg" asChild>
@@ -132,11 +96,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          <HeroCarousel />
+          <HeroCarousel featured={featured} />
         </div>
       </section>
 
-      {/* Trust features */}
       <section className="border-b bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
@@ -158,7 +121,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
       <section className="max-w-7xl mx-auto w-full px-4 py-14">
         <div className="text-center mb-8">
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -168,15 +130,14 @@ export default function HomePage() {
             Shop by category
           </h2>
           <p className="mt-2 text-muted-foreground max-w-md mx-auto">
-            {items.length > 0
+            {categories.length > 0
               ? "Jump straight into what you're looking for."
               : "Categories will appear as products load."}
           </p>
         </div>
-        <CategoryPills />
+        <CategoryPills categories={categories} />
       </section>
 
-      {/* Products */}
       <section
         id="products"
         className="max-w-7xl mx-auto w-full px-4 pb-16 scroll-mt-20"
@@ -193,17 +154,20 @@ export default function HomePage() {
               Fresh picks updated regularly. Add to cart in one click.
             </p>
           </div>
-          <Button variant="outline" asChild className="shrink-0 self-start sm:self-auto">
+          <Button
+            variant="outline"
+            asChild
+            className="shrink-0 self-start sm:self-auto"
+          >
             <Link href="/products">
               View all
               <ArrowRight className="size-4" />
             </Link>
           </Button>
         </div>
-        <ProductsGrid />
+        <ProductsGrid products={products} />
       </section>
 
-      {/* CTA banner */}
       <section className="max-w-7xl mx-auto w-full px-4 pb-16">
         <div className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground px-6 py-12 md:px-12 md:py-16">
           <div
@@ -225,12 +189,7 @@ export default function HomePage() {
               Create an account today and unlock exclusive deals, early access to
               sales, and faster checkout.
             </p>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="mt-6"
-              asChild
-            >
+            <Button size="lg" variant="secondary" className="mt-6" asChild>
               <Link href="/register">
                 Create free account
                 <ArrowRight className="size-4" />
@@ -240,35 +199,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="border-t bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 py-14">
-          <div className="mx-auto max-w-lg text-center">
-            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-background border">
-              <Mail className="size-5 text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-bold sm:text-2xl">Stay in the loop</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              New arrivals, restocks, and exclusive offers — no spam, unsubscribe
-              anytime.
-            </p>
-            <form
-              className="mt-6 flex flex-col gap-2 sm:flex-row"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <Input
-                type="email"
-                placeholder="you@example.com"
-                className="h-10 bg-background flex-1"
-                aria-label="Email address"
-              />
-              <Button type="submit" className="h-10 shrink-0">
-                Subscribe
-              </Button>
-            </form>
-          </div>
-        </div>
-      </section>
+      <HomeNewsletter />
     </div>
   );
 }

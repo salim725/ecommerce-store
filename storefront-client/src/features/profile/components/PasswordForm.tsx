@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
 
 interface PasswordFormData {
   oldPassword: string;
@@ -32,8 +33,8 @@ export default function PasswordForm() {
           })).unwrap();
           toast.success("Password changed successfully 🔒");
           reset(); // clear the form after success
-        } catch (err: any) {
-          toast.error(err);
+        } catch (err: unknown) {
+          toast.error(getErrorMessage(err, "Password change failed"));
         }
       };
     

@@ -1,5 +1,11 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import * as cartApi from "../services/cartApi";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+  PayloadAction,
+} from "@reduxjs/toolkit";
+import { cartApi } from "../api/cartApi";
+import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
 
 export interface CartItem {
   _id: string;
@@ -52,14 +58,14 @@ const clearGuestCart = () => {
 // Fetch cart from backend (logged-in users)
 export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await cartApi.getCart();
-      return res.data.items as CartItem[];
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch cart",
-      );
+      const result = await dispatch(
+        cartApi.endpoints.getCart.initiate(undefined, { forceRefetch: true }),
+      ).unwrap();
+      return result.items;
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Failed to fetch cart"));
     }
   },
 );
@@ -76,13 +82,17 @@ export const addItem = createAsyncThunk(
       quantity: number;
       isAuthenticated: boolean;
     },
-    { rejectWithValue },
+    { dispatch, rejectWithValue },
   ) => {
     try {
       if (isAuthenticated) {
-        // Sync with backend
-        const res = await cartApi.addToCart(product._id, quantity);
-        return { items: res.data.items as CartItem[], isAuthenticated };
+        const result = await dispatch(
+          cartApi.endpoints.addToCart.initiate({
+            productId: product._id,
+            quantity,
+          }),
+        ).unwrap();
+        return { items: result.items, isAuthenticated };
       } else {
         // Save to localStorage
         const guestCart = getGuestCart();
@@ -95,10 +105,8 @@ export const addItem = createAsyncThunk(
         saveGuestCart(guestCart);
         return { guestCart, isAuthenticated };
       }
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to add item",
-      );
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Failed to add item"));
     }
   },
 );
@@ -118,12 +126,14 @@ export const updateItem = createAsyncThunk(
       quantity: number;
       isAuthenticated: boolean;
     },
-    { rejectWithValue },
+    { dispatch, rejectWithValue },
   ) => {
     try {
       if (isAuthenticated) {
-        const res = await cartApi.updateCartItem(itemId, quantity);
-        return { items: res.data.items as CartItem[], isAuthenticated };
+        const result = await dispatch(
+          cartApi.endpoints.updateCartItem.initiate({ itemId, quantity }),
+        ).unwrap();
+        return { items: result.items, isAuthenticated };
       } else {
         const guestCart = getGuestCart();
         const item = guestCart.find((i) => i.product._id === itemId);
@@ -131,10 +141,8 @@ export const updateItem = createAsyncThunk(
         saveGuestCart(guestCart);
         return { guestCart, isAuthenticated };
       }
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to update item",
-      );
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Failed to update item"));
     }
   },
 );
@@ -144,12 +152,14 @@ export const removeItem = createAsyncThunk(
   "cart/removeItem",
   async (
     { itemId, isAuthenticated }: { itemId: string; isAuthenticated: boolean },
-    { rejectWithValue },
+    { dispatch, rejectWithValue },
   ) => {
     try {
       if (isAuthenticated) {
-        const res = await cartApi.removeCartItem(itemId);
-        return { items: res.data.items as CartItem[], isAuthenticated };
+        const result = await dispatch(
+          cartApi.endpoints.removeCartItem.initiate(itemId),
+        ).unwrap();
+        return { items: result.items, isAuthenticated };
       } else {
         const guestCart = getGuestCart().filter(
           (i) => i.product._id !== itemId,
@@ -157,10 +167,8 @@ export const removeItem = createAsyncThunk(
         saveGuestCart(guestCart);
         return { guestCart, isAuthenticated };
       }
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to remove item",
-      );
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Failed to remove item"));
     }
   },
 );
@@ -168,25 +176,28 @@ export const removeItem = createAsyncThunk(
 // Called right after login — merge guest cart into user cart
 export const mergeCarts = createAsyncThunk(
   "cart/merge",
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       const guestCart = getGuestCart();
       if (guestCart.length === 0) {
-        // No guest items — just fetch the user's existing cart
-        const res = await cartApi.getCart();
-        return res.data.items as CartItem[];
+        const result = await dispatch(
+          cartApi.endpoints.getCart.initiate(undefined, {
+            forceRefetch: true,
+          }),
+        ).unwrap();
+        return result.items;
       }
       const localItems = guestCart.map((i) => ({
         productId: i.product._id,
         quantity: i.quantity,
       }));
-      const res = await cartApi.mergeCart(localItems);
-      clearGuestCart(); // clean up localStorage after successful merge
-      return res.data.items as CartItem[];
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to merge cart",
-      );
+      const result = await dispatch(
+        cartApi.endpoints.mergeCart.initiate({ items: localItems }),
+      ).unwrap();
+      clearGuestCart();
+      return result.items;
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Failed to merge cart"));
     }
   },
 );
@@ -241,7 +252,14 @@ const cartSlice = createSlice({
       });
 
     // addItem, updateItem, removeItem — all return same shape
-    const syncFulfilled = (state: CartState, action: any) => {
+    type CartMutationPayload =
+      | { items: CartItem[]; isAuthenticated: true }
+      | { guestCart: GuestCartItem[]; isAuthenticated: false };
+
+    const syncFulfilled = (
+      state: CartState,
+      action: PayloadAction<CartMutationPayload>,
+    ) => {
       state.isLoading = false;
       if (action.payload.isAuthenticated) {
         state.items = action.payload.items;
@@ -265,10 +283,19 @@ const cartSlice = createSlice({
 export const { loadGuestCart, clearCart, addToCart } = cartSlice.actions;
 
 // Selectors
-export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
-export const selectCartTotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-export const selectCartCount = (state: { cart: CartState }) =>
-  state.cart.items.reduce((sum, i) => sum + i.quantity, 0);
+const selectCartState = (state: { cart: CartState }) => state.cart;
+
+export const selectCartItems = createSelector(
+  selectCartState,
+  (cart) => cart.items,
+);
+
+export const selectCartTotal = createSelector(selectCartItems, (items) =>
+  items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
+);
+
+export const selectCartCount = createSelector(selectCartItems, (items) =>
+  items.reduce((sum, i) => sum + i.quantity, 0),
+);
 
 export default cartSlice.reducer;

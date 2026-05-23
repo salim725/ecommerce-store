@@ -1,16 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAuthToken, clearAuthToken } from "@/src/shared/utils/authToken";
-import {
-  registerUser,
-  loginUser,
-  logoutUser,
-  getMe,
-} from "../services/authApi";
+import { authApi } from "../api/authApi";
+import { updateProfile } from "@/src/features/profile/slices/profileSlice";
+import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
+  address?: string;
 }
 
 interface AuthState {
@@ -33,16 +32,16 @@ export const register = createAsyncThunk(
   "auth/register",
   async (
     data: { name: string; email: string; password: string },
-    { rejectWithValue },
+    { dispatch, rejectWithValue },
   ) => {
     try {
-      const res = await registerUser(data);
-      setAuthToken(res.data.token);
-      return res.data; // { user, token }
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Registration failed",
-      );
+      const result = await dispatch(
+        authApi.endpoints.register.initiate(data),
+      ).unwrap();
+      setAuthToken(result.token);
+      return result;
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Registration failed"));
     }
   },
 );
@@ -54,33 +53,43 @@ export const login = createAsyncThunk(
   "auth/login",
   async (
     credentials: { email: string; password: string },
-    { rejectWithValue },
+    { dispatch, rejectWithValue },
   ) => {
     try {
-      const res = await loginUser(credentials);
-      setAuthToken(res.data.token);
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Login failed");
+      const result = await dispatch(
+        authApi.endpoints.login.initiate(credentials),
+      ).unwrap();
+      setAuthToken(result.token);
+      return result;
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Login failed"));
     }
   },
 );
 
 // LOGOUT thunk
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await logoutUser();
-  clearAuthToken();
-});
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { dispatch }) => {
+    try {
+      await dispatch(authApi.endpoints.logout.initiate()).unwrap();
+    } catch {
+      // Clear local session even if the API call fails
+    }
+    clearAuthToken();
+  },
+);
 
 // GETME thunk — rehydrate session on app start
 export const fetchMe = createAsyncThunk(
   "auth/getMe",
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await getMe();
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Session expired");
+      return await dispatch(
+        authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
+      ).unwrap();
+    } catch (err: unknown) {
+      return rejectWithValue(getErrorMessage(err, "Session expired"));
     }
   },
 );
@@ -144,6 +153,11 @@ const authSlice = createSlice({
         state.token = null;
         clearAuthToken();
       });
+
+    // Profile updates — keep auth.user in sync with profile edits
+    builder.addCase(updateProfile.fulfilled, (state, action) => {
+      state.user = action.payload;
+    });
   },
 });
 

@@ -1,15 +1,17 @@
-// src/app/layout.tsx
-// Remove "use client" from the top level
-// Keep "use client" only on the inner AppContent component
-
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import ClientLayout from "./ClientLayout"; // we'll create this below
+import ClientLayout from "./ClientLayout";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: {
     default: "Storefront",
-    template: "%s | Storefront", // e.g. "Sneakers | Storefront"
+    template: "%s | Storefront",
   },
   description: "Your one-stop online shop for the best products.",
   openGraph: {
@@ -18,10 +20,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="min-h-full flex flex-col antialiased">
+      <body
+        className={`${inter.variable} min-h-full flex flex-col antialiased font-sans`}
+      >
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

@@ -10,14 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/src/shared/utils/formatPrice";
 
-interface Product {
-  _id: string;
-  name: string;
-  price: number;
-  imageUrl: string;
-  stock: number;
-  category: string;
-}
+import type { Product } from "@/src/features/products/lib/getProductsServer";
 
 export default function ProductCard({ product }: { product: Product }) {
   const dispatch = useAppDispatch();

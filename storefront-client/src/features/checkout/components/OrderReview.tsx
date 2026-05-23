@@ -3,25 +3,43 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { selectCartItems, selectCartTotal, clearCart } from "@/src/features/cart/slices/cartSlice";
+import {
+  selectCartItems,
+  selectCartTotal,
+  clearCart,
+} from "@/src/features/cart/slices/cartSlice";
 import { createOrder } from "../services/checkoutApi";
 import type { ShippingData } from "./ShippingForm";
+import type { PaymentData } from "./PaymentForm";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "react-toastify";
 import { formatPrice } from "@/src/shared/utils/formatPrice";
+import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
 
 interface Props {
   shippingData: ShippingData;
+  paymentData: PaymentData;
   onBack: () => void;
 }
 
-export default function OrderReview({ shippingData, onBack }: Props) {
+function maskCardNumber(cardNumber: string): string {
+  const digits = cardNumber.replace(/\D/g, "");
+  if (digits.length < 4) return "••••";
+  return `•••• •••• •••• ${digits.slice(-4)}`;
+}
+
+export default function OrderReview({
+  shippingData,
+  paymentData,
+  onBack,
+}: Props) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const items = useAppSelector(selectCartItems);
   const total = useAppSelector(selectCartTotal);
   const [isLoading, setIsLoading] = useState(false);
+
   const handlePlaceOrder = async () => {
     setIsLoading(true);
     try {
@@ -30,24 +48,21 @@ export default function OrderReview({ shippingData, onBack }: Props) {
         paymentMethod: "card",
         items,
       });
-      dispatch(clearCart());                        // empty the cart in Redux
-      localStorage.removeItem("guest_cart");        // clear guest cart too
+      dispatch(clearCart());
+      localStorage.removeItem("guest_cart");
       toast.success("Order placed successfully! 🎉");
-      router.push(`/orders/${res.data.order._id}`); // go to confirmation page
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to place order");
+      router.push(`/orders/${res.data.order._id}`);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to place order"));
     } finally {
       setIsLoading(false);
     }
   };
-  //This is where the actual API call happens — 
-  // only when the user clicks "Place Order" on the review screen,
-  //  after seeing everything.
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold">Review Your Order</h2>
 
-      {/* Cart items */}
       <div className="space-y-3">
         {items.map((item) => (
           <div key={item._id} className="flex justify-between text-sm">
@@ -64,7 +79,6 @@ export default function OrderReview({ shippingData, onBack }: Props) {
 
       <Separator />
 
-      {/* Shipping address summary */}
       <div>
         <p className="text-sm font-semibold mb-1">Shipping to:</p>
         <p className="text-sm text-muted-foreground">
@@ -75,13 +89,23 @@ export default function OrderReview({ shippingData, onBack }: Props) {
 
       <Separator />
 
-      {/* Total */}
+      <div>
+        <p className="text-sm font-semibold mb-1">Payment:</p>
+        <p className="text-sm text-muted-foreground">
+          Simulated card — {maskCardNumber(paymentData.cardNumber)}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {paymentData.cardName} · Expires {paymentData.expiry}
+        </p>
+      </div>
+
+      <Separator />
+
       <div className="flex justify-between font-bold text-lg">
         <span>Total</span>
         <span>{formatPrice(total)}</span>
       </div>
 
-      {/* Action buttons */}
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1" onClick={onBack}>
           ← Back

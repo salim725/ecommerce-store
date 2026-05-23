@@ -68,9 +68,10 @@ export default function CheckoutStepper() {
           onBack={() => setCurrentStep(1)}
         />
       )}
-      {currentStep === 3 && shippingData && (
+      {currentStep === 3 && shippingData && paymentData && (
         <OrderReview
           shippingData={shippingData}
+          paymentData={paymentData}
           onBack={() => setCurrentStep(2)}
         />
       )}

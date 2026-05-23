@@ -1,22 +1,20 @@
 import { configureStore } from "@reduxjs/toolkit";
-import uiReducer from "@/src/shared/slices/uiSlice";
 import authReducer from "@/src/features/auth/slices/authSlice";
-import productsReducer from "@/src/features/products/slices/productsSlice";
 import cartReducer from "@/src/features/cart/slices/cartSlice";
 import profileReducer from "@/src/features/profile/slices/profileSlice";
-
-
-
-
+import { storefrontApi } from "@/src/shared/services/storefrontApi";
+import "@/src/features/auth/api/authApi";
+import "@/src/features/cart/api/cartApi";
 
 export const store = configureStore({
   reducer: {
-    ui: uiReducer,
+    [storefrontApi.reducerPath]: storefrontApi.reducer,
     auth: authReducer,
-    products: productsReducer,
     cart: cartReducer,
-    profile:profileReducer,
+    profile: profileReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(storefrontApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

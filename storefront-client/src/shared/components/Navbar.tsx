@@ -59,6 +59,9 @@ export default function Navbar() {
             <Avatar className="w-8 h-8">
               <AvatarFallback>{user?.name?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/profile">Account</Link>
+            </Button>
             <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
           </div>
         ) : (
@@ -76,7 +79,12 @@ export default function Navbar() {
           <SheetContent side="right" className="flex flex-col gap-4 pt-10">
             {navLinks}
             {isAuthenticated ? (
-              <Button variant="outline" onClick={handleLogout}>Logout</Button>
+              <>
+                <Button variant="outline" asChild>
+                  <Link href="/profile">Account</Link>
+                </Button>
+                <Button variant="outline" onClick={handleLogout}>Logout</Button>
+              </>
             ) : (
               <>
                 <Button variant="outline" asChild><Link href="/login">Login</Link></Button>

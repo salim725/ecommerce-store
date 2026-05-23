@@ -1,68 +1,116 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { register } from "../slices/authSlice";
+import { register as registerUser } from "../slices/authSlice";
+import { mergeCarts } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
+
+interface RegisterFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
 export default function RegisterForm() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { isLoading } = useAppSelector((state) => state.auth);
 
-  const [form, setForm] = useState({
-    name: "", email: "", password: "", confirmPassword: "",
-  });
-  //Local state for the form fields. useAppSelector reads loading state
-  //  from Redux so we can disable the button while submitting.
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+  } = useForm<RegisterFormData>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) {
+  const onSubmit = async (data: RegisterFormData) => {
+    if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
+
     try {
-      await dispatch(register({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-      })).unwrap(); // .unwrap() throws if the thunk was rejected
+      await dispatch(
+        registerUser({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        }),
+      ).unwrap();
+      await dispatch(mergeCarts());
       toast.success("Account created! Welcome 🎉");
       router.push("/");
-    } catch (err: any) {
-      toast.error(err);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Registration failed"));
     }
   };
 
-  //.unwrap() is important — it converts a rejected thunk into 
-  // a real thrown error so catch works correctly
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-md">
       <div>
         <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" value={form.name} onChange={handleChange} required />
+        <Input
+          id="name"
+          {...register("name", { required: "Name is required" })}
+        />
+        {errors.name && (
+          <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+        )}
       </div>
       <div>
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
+        <Input
+          id="email"
+          type="email"
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Enter a valid email address",
+            },
+          })}
+        />
+        {errors.email && (
+          <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+        )}
       </div>
       <div>
         <Label htmlFor="password">Password</Label>
-        <Input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
+        <Input
+          id="password"
+          type="password"
+          {...register("password", {
+            required: "Password is required",
+            minLength: { value: 6, message: "At least 6 characters" },
+          })}
+        />
+        {errors.password && (
+          <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+        )}
       </div>
       <div>
         <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input id="confirmPassword" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} required />
+        <Input
+          id="confirmPassword"
+          type="password"
+          {...register("confirmPassword", {
+            required: "Please confirm your password",
+            validate: (value) =>
+              value === getValues("password") || "Passwords do not match",
+          })}
+        />
+        {errors.confirmPassword && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors.confirmPassword.message}
+          </p>
+        )}
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Creating account..." : "Register"}
