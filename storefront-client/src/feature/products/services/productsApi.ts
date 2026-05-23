@@ -10,3 +10,6 @@ export const getProducts = (params?: {
 export const getFeatured = () =>
     axiosInstance.get("/products/featured");
 //Fetches the featured/newest products used in the hero carousel.
+export const getProductById = (id: string) =>
+    axiosInstance.get(`/products/${id}`);
+//Simple — fetches one product by its ID from the URL.
