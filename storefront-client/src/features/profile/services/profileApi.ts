@@ -1,21 +1,20 @@
 import axiosInstance from "@/src/shared/services/axiosInstance";
 
-export const getMe = () => axiosInstance.get("/auth/me");
+export const getProfile = () => axiosInstance.get("/users/profile");
 
-//Same endpoint as auth's getMe —
-// but here we use it specifically to load the profile page data.
-export const updateProfile = (data: {
-  name?: string;
-  phone?: string;
-  address?: string;
-}) => axiosInstance.put("/auth/me", data);
+export const updateProfile = (data: { name?: string }) =>
+  axiosInstance.put("/users/profile", data);
 
 export const changePassword = (data: {
   oldPassword: string;
   newPassword: string;
-}) => axiosInstance.put("/auth/me/password", data);
+}) =>
+  axiosInstance.put("/users/change-password", {
+    currentPassword: data.oldPassword,
+    newPassword: data.newPassword,
+  });
 
-export const getMyOrders = () => axiosInstance.get("/orders/my");
+export const getMyOrders = () => axiosInstance.get("/orders/my-order");
 
 export const getOrderById = (id: string) =>
-  axiosInstance.get(`/orders/my/${id}`);
+  axiosInstance.get(`/orders/${id}`);

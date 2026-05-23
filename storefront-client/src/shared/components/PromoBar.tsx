@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { ArrowRight, X } from "lucide-react";
 
 const STORAGE_KEY = "everyday_edit_promo_dismissed";
@@ -31,13 +30,13 @@ export default function PromoBar() {
       <span className="font-medium">Spring Sale</span>
       <span className="mx-2 opacity-60">·</span>
       <span className="opacity-90">Up to 40% off selected items</span>
-      <Link
+      <a
         href="#products"
         className="ml-2 inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline"
       >
         Shop now
         <ArrowRight className="size-3.5" aria-hidden />
-      </Link>
+      </a>
       <button
         type="button"
         onClick={dismiss}

@@ -1,6 +1,7 @@
 const BYPASS_OPTIMIZER_HOSTS = new Set([
   "images.unsplash.com",
   "plus.unsplash.com",
+  "res.cloudinary.com",
 ]);
 
 /** Skip Next.js image optimization for hosts that often time out in dev. */

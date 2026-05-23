@@ -1,0 +1,10 @@
+{
+  "name": "crm-backend-server",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix src",
+    "build": "npm run build --prefix src",
+    "start": "npm run start --prefix src",
+    "typecheck": "npm run typecheck --prefix src"
+  }
+}

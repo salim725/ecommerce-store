@@ -13,16 +13,18 @@ export const authApi = storefrontApi.injectEndpoints({
       }),
       invalidatesTags: ["Auth"],
     }),
-    register: builder.mutation<
-      AuthResponse,
-      { name: string; email: string; password: string }
-    >({
+    register: builder.mutation<void, { name: string; email: string; password: string }>({
       query: (data) => ({
         url: "/auth/register",
         method: "POST",
         data,
       }),
-      invalidatesTags: ["Auth"],
+    }),
+    verifyEmail: builder.mutation<void, string>({
+      query: (token) => ({
+        url: `/auth/verify-email/${token}`,
+        method: "GET",
+      }),
     }),
     getMe: builder.query<{ user: User }, void>({
       query: () => ({ url: "/auth/me" }),
@@ -38,6 +40,7 @@ export const authApi = storefrontApi.injectEndpoints({
 export const {
   useLoginMutation,
   useRegisterMutation,
+  useVerifyEmailMutation,
   useGetMeQuery,
   useLogoutMutation,
 } = authApi;

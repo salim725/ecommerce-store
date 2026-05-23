@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  startTransition,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -27,6 +34,7 @@ export function SearchInput({
   const listboxId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const routerReadyRef = useRef(false);
 
   const urlQuery = searchParams.get("q") ?? "";
   const [draft, setDraft] = useState<string | null>(null);
@@ -44,7 +52,11 @@ export function SearchInput({
       }
 
       const query = params.toString();
-      router.push(query ? `/products?${query}` : "/products");
+      const href = query ? `/products?${query}` : "/products";
+      if (!routerReadyRef.current) return;
+      startTransition(() => {
+        router.push(href);
+      });
       setDraft(null);
       onNavigate?.();
     },
@@ -60,7 +72,9 @@ export function SearchInput({
   );
 
   useEffect(() => {
+    routerReadyRef.current = true;
     return () => {
+      routerReadyRef.current = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);

@@ -9,6 +9,7 @@ import {
   clearCart,
 } from "@/src/features/cart/slices/cartSlice";
 import { createOrder } from "../services/checkoutApi";
+import { extractApiData } from "@/src/shared/utils/extractApiData";
 import type { ShippingData } from "./ShippingForm";
 import type { PaymentData } from "./PaymentForm";
 import { Button } from "@/components/ui/button";
@@ -44,14 +45,15 @@ export default function OrderReview({
     setIsLoading(true);
     try {
       const res = await createOrder({
-        shippingAddress: shippingData,
+        shippingData,
         paymentMethod: "card",
         items,
       });
+      const order = extractApiData<{ _id: string }>(res.data);
       dispatch(clearCart());
       localStorage.removeItem("guest_cart");
       toast.success("Order placed successfully");
-      router.push(`/orders/${res.data.order._id}`);
+      router.push(`/orders/${order._id}`);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to place order"));
     } finally {

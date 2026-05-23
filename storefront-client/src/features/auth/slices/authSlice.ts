@@ -27,7 +27,7 @@ const initialState: AuthState = {
   error: null,
   isAuthenticated: false,
 };
-// REGISTER thunk
+// REGISTER thunk — no auto-login; user must verify email first
 export const register = createAsyncThunk(
   "auth/register",
   async (
@@ -35,11 +35,10 @@ export const register = createAsyncThunk(
     { dispatch, rejectWithValue },
   ) => {
     try {
-      const result = await dispatch(
+      await dispatch(
         authApi.endpoints.register.initiate(data),
       ).unwrap();
-      setAuthToken(result.token);
-      return result;
+      return { email: data.email };
     } catch (err: unknown) {
       return rejectWithValue(getErrorMessage(err, "Registration failed"));
     }
@@ -105,11 +104,8 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;

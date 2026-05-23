@@ -22,28 +22,28 @@ export const cartApi = storefrontApi.injectEndpoints({
     }),
     updateCartItem: builder.mutation<
       CartResponse,
-      { itemId: string; quantity: number }
+      { productId: string; quantity: number }
     >({
-      query: ({ itemId, quantity }) => ({
-        url: `/cart/${itemId}`,
+      query: ({ productId, quantity }) => ({
+        url: `/cart/${productId}`,
         method: "PUT",
         data: { quantity },
       }),
       invalidatesTags: ["Cart"],
     }),
     removeCartItem: builder.mutation<CartResponse, string>({
-      query: (itemId) => ({
-        url: `/cart/${itemId}`,
+      query: (productId) => ({
+        url: `/cart/${productId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Cart"],
     }),
-    mergeCart: builder.mutation<
+    syncCart: builder.mutation<
       CartResponse,
       { items: { productId: string; quantity: number }[] }
     >({
       query: (body) => ({
-        url: "/cart/merge",
+        url: "/cart/sync",
         method: "POST",
         data: body,
       }),
@@ -57,5 +57,5 @@ export const {
   useAddToCartMutation,
   useUpdateCartItemMutation,
   useRemoveCartItemMutation,
-  useMergeCartMutation,
+  useSyncCartMutation,
 } = cartApi;

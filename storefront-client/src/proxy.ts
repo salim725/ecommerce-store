@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const protectedRoutes = ["/profile", "/orders", "/checkout"];
-const authRoutes = ["/login", "/register"];
+const authRoutes = ["/login", "/register", "/verify-email"];
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get("sf_token")?.value;
@@ -32,5 +32,7 @@ export const config = {
     "/checkout/:path*",
     "/login",
     "/register",
+    "/verify-email",
+    "/verify-email/:path*",
   ],
 };

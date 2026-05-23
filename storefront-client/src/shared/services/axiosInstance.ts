@@ -1,19 +1,42 @@
 import axios from "axios";
-import { getAuthToken, clearAuthToken } from "@/src/shared/utils/authToken";
+import { getAuthToken, clearAuthToken, setAuthToken } from "@/src/shared/utils/authToken";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 10000,
+  withCredentials: true,
 });
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = axios
+    .post<{ data?: { token: string } }>(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+      {},
+      { withCredentials: true },
+    )
+    .then((res) => {
+      const body = res.data as { data?: { token: string }; success?: boolean };
+      const token = body?.data?.token ?? null;
+      if (token) setAuthToken(token);
+      return token;
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
+}
 
 // Request interceptor — runs BEFORE every request is sent
 axiosInstance.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      // only runs in browser (not SSR)
       const token = getAuthToken();
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`; // attach it to the request
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
     return config;
@@ -21,17 +44,28 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-//Every time the app makes an API call, this automatically attaches the user's token to the header — so the backend knows who's making the request.
-// Response interceptor — runs AFTER every response comes back
 axiosInstance.interceptors.response.use(
-  (response) => response, // success: just pass the response through
-  (error) => {
-    if (error.response?.status === 401) {
-      // 401 = Unauthorized (token expired)
-      if (typeof window !== "undefined") {
-        clearAuthToken();
-        window.location.href = "/login"; // kick user to login page
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      typeof window !== "undefined" &&
+      !String(originalRequest.url ?? "").includes("auth/")
+    ) {
+      originalRequest._retry = true;
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return axiosInstance(originalRequest);
       }
+      clearAuthToken();
+      window.location.href = "/login";
+    } else if (error.response?.status === 401 && typeof window !== "undefined") {
+      clearAuthToken();
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   },

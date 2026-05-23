@@ -107,7 +107,7 @@ function GallerySlide({
         fill
         className="object-cover"
         priority={index === 0}
-        sizes="100vw"
+        sizes="(max-width: 1024px) calc(100vw - 2rem), min(60vw, 42rem)"
       />
     </div>
   );

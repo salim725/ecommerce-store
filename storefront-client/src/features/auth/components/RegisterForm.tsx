@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { register as registerUser } from "../slices/authSlice";
-import { mergeCarts } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,16 +36,17 @@ export default function RegisterForm() {
     }
 
     try {
-      await dispatch(
+      const result = await dispatch(
         registerUser({
           name: data.name,
           email: data.email,
           password: data.password,
         }),
       ).unwrap();
-      await dispatch(mergeCarts());
-      toast.success("Account created! Welcome 🎉");
-      router.push("/");
+      toast.success("Check your inbox to verify your email");
+      router.push(
+        `/verify-email?email=${encodeURIComponent(result.email)}`,
+      );
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Registration failed"));
     }

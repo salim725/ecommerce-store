@@ -3,6 +3,7 @@ import {
   getProductsServer,
   getFeaturedServer,
 } from "@/src/features/products/lib/getProductsServer";
+import { PRODUCT_CATEGORY_LIST } from "@/src/shared/constants/product-categories";
 
 export default async function CartPage() {
   const [products, featured] = await Promise.all([
@@ -10,9 +11,7 @@ export default async function CartPage() {
     getFeaturedServer(),
   ]);
 
-  const categories = [
-    ...new Set(products.map((p) => p.category).filter(Boolean)),
-  ];
+  const categories = PRODUCT_CATEGORY_LIST;
 
   return (
     <CartPageContent

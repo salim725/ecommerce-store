@@ -184,7 +184,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           </AccordionItem>
         </Accordion>
 
-        <ProductReviews />
+        <ProductReviews productId={product._id} />
       </div>
 
       {inStock && (

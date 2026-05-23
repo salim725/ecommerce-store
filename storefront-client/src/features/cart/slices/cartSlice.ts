@@ -131,7 +131,10 @@ export const updateItem = createAsyncThunk(
     try {
       if (isAuthenticated) {
         const result = await dispatch(
-          cartApi.endpoints.updateCartItem.initiate({ itemId, quantity }),
+          cartApi.endpoints.updateCartItem.initiate({
+            productId: itemId,
+            quantity,
+          }),
         ).unwrap();
         return { items: result.items, isAuthenticated };
       } else {
@@ -192,7 +195,7 @@ export const mergeCarts = createAsyncThunk(
         quantity: i.quantity,
       }));
       const result = await dispatch(
-        cartApi.endpoints.mergeCart.initiate({ items: localItems }),
+        cartApi.endpoints.syncCart.initiate({ items: localItems }),
       ).unwrap();
       clearGuestCart();
       return result.items;

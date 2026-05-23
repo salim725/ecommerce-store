@@ -15,6 +15,7 @@ import {
   getProductsServer,
   getFeaturedServer,
 } from "@/src/features/products/lib/getProductsServer";
+import { PRODUCT_CATEGORY_LIST } from "@/src/shared/constants/product-categories";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -47,9 +48,7 @@ export default async function HomePage() {
     getFeaturedServer(),
   ]);
 
-  const categories = [
-    ...new Set(products.map((p) => p.category).filter(Boolean)),
-  ];
+  const categories = PRODUCT_CATEGORY_LIST;
 
   return (
     <div className="flex flex-col">
@@ -78,10 +77,10 @@ export default async function HomePage() {
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Button size="lg" asChild>
-                  <Link href="#products">
+                  <a href="#products">
                     Shop new arrivals
                     <ArrowRight className="size-4" />
-                  </Link>
+                  </a>
                 </Button>
                 <Button variant="link" size="lg" className="px-2" asChild>
                   <Link href="/products">View all products</Link>

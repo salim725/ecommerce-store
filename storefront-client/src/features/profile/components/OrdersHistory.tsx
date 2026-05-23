@@ -8,11 +8,16 @@ import { formatPrice } from "@/src/shared/utils/formatPrice";
 import { formatDate } from "@/src/shared/utils/formatDate";
 import Spinner from "@/src/shared/components/Spinner";
 
-// Status badge colors
-const statusConfig = {
-  pending:   { label: "Pending",   className: "bg-yellow-100 text-yellow-800" },
-  paid:      { label: "Paid",      className: "bg-green-100 text-green-800" },
-  shipped:   { label: "Shipped",   className: "bg-blue-100 text-blue-800" },
+import type { OrderStatus } from "../slices/profileSlice";
+
+const statusConfig: Record<
+  OrderStatus,
+  { label: string; className: string }
+> = {
+  pending: { label: "Pending", className: "bg-yellow-100 text-yellow-800" },
+  processing: { label: "Processing", className: "bg-amber-100 text-amber-800" },
+  shipped: { label: "Shipped", className: "bg-blue-100 text-blue-800" },
+  delivered: { label: "Delivered", className: "bg-green-100 text-green-800" },
   cancelled: { label: "Cancelled", className: "bg-red-100 text-red-800" },
 };
 export default function OrdersHistory() {
@@ -52,7 +57,8 @@ export default function OrdersHistory() {
         </div>
   
         {orders.map((order) => {
-          const status = statusConfig[order.status] ?? statusConfig.pending;
+          const status =
+            statusConfig[order.orderStatus] ?? statusConfig.pending;
           const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
   
           return (

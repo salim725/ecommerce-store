@@ -1,5 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## API integration (monorepo)
+
+| App | Dev URL | Port |
+|-----|---------|------|
+| **Backend API** | `http://localhost:3010/api/v1` | **3010** |
+| **Storefront** (this app) | `http://localhost:3000` | 3000 |
+| **CRM** (future) | `http://localhost:3001` | 3001 |
+
+Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_API_URL` to the backend base URL **including** `/api/v1` (no trailing slash). RTK Query paths such as `/auth/login` and `/cart` are relative to that base.
+
+Start the API from `backend/server` before the storefront. Ensure backend `CORS_CLIENTS` includes `http://localhost:3000` and `http://localhost:3001`.
+
 ## Getting Started
 
 First, run the development server:

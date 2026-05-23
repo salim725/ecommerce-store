@@ -2,11 +2,20 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { User } from "@/src/features/auth/slices/authSlice";
 import * as profileApi from "../services/profileApi";
 import { getErrorMessage } from "@/src/shared/utils/getErrorMessage";
+import { extractApiData } from "@/src/shared/utils/extractApiData";
+import { mapUserFromApi } from "@/src/shared/utils/mapUserFromApi";
 
-interface Order {
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export interface Order {
   _id: string;
   createdAt: string;
-  status: "pending" | "paid" | "shipped" | "cancelled";
+  orderStatus: OrderStatus;
   items: { product: { name: string; price: number }; quantity: number }[];
   totalPrice: number;
 }
@@ -25,13 +34,11 @@ const initialState: ProfileState = {
 
 export const updateProfile = createAsyncThunk(
   "profile/update",
-  async (
-    data: { name?: string; phone?: string; address?: string },
-    { rejectWithValue },
-  ) => {
+  async (data: { name?: string; phone?: string; address?: string }, { rejectWithValue }) => {
     try {
-      const res = await profileApi.updateProfile(data);
-      return res.data.user as User;
+      const res = await profileApi.updateProfile({ name: data.name });
+      const user = extractApiData<Parameters<typeof mapUserFromApi>[0]>(res.data);
+      return mapUserFromApi(user);
     } catch (err: unknown) {
       return rejectWithValue(getErrorMessage(err, "Update failed"));
     }
@@ -58,7 +65,7 @@ export const fetchMyOrders = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await profileApi.getMyOrders();
-      return res.data.orders as Order[];
+      return extractApiData<Order[]>(res.data);
     } catch (err: unknown) {
       return rejectWithValue(getErrorMessage(err, "Failed to load orders"));
     }

@@ -1,13 +1,11 @@
 import { getProductsServer } from "@/src/features/products/lib/getProductsServer";
 import { Breadcrumbs } from "@/src/shared/components/Breadcrumbs";
 import ProductsListing from "@/src/features/products/components/ProductsListing";
+import { PRODUCT_CATEGORY_LIST } from "@/src/shared/constants/product-categories";
 
 export default async function ProductsPage() {
   const products = await getProductsServer({ limit: 200 });
-
-  const categories = [
-    ...new Set(products.map((p) => p.category).filter(Boolean)),
-  ].sort();
+  const categories = PRODUCT_CATEGORY_LIST;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
