@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import ProductImage from "@/src/shared/components/ProductImage";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { updateItem, removeItem } from "../slices/cartSlice";
 import type { CartItem as CartItemType } from "../slices/cartSlice";
@@ -25,8 +25,8 @@ export default function CartItem({ item }: { item: CartItemType }) {
   return (
     <div className="flex gap-4 py-4 border-b items-center">
       {/* Product image */}
-      <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-        <Image
+      <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+        <ProductImage
           src={item.product.imageUrl}
           alt={item.product.name}
           fill

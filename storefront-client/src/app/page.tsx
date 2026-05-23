@@ -4,11 +4,12 @@ import {
   Truck,
   ShieldCheck,
   RefreshCw,
-  Sparkles,
+  Star,
 } from "lucide-react";
-import HeroCarousel from "@/src/features/products/components/HeroCarousal";
+import PromoBar from "@/src/shared/components/PromoBar";
+import HeroCarousel from "@/src/features/products/components/HeroCarousel";
 import ProductsGrid from "@/src/features/products/components/ProductsGrid";
-import CategoryPills from "@/src/features/products/components/CategoryPills";
+import CategoryTiles from "@/src/features/products/components/CategoryTiles";
 import HomeNewsletter from "@/src/features/products/components/HomeNewsletter";
 import {
   getProductsServer,
@@ -34,9 +35,9 @@ const TRUST_FEATURES = [
     description: "30-day hassle-free",
   },
   {
-    icon: Sparkles,
-    title: "Curated Picks",
-    description: "Quality you can trust",
+    icon: Star,
+    title: "4.8★ rated",
+    description: "2,400+ reviews",
   },
 ] as const;
 
@@ -52,51 +53,44 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      <div className="bg-primary text-primary-foreground text-center text-sm py-2.5 px-4">
-        <span className="font-medium">Spring Sale</span>
-        <span className="mx-2 opacity-60">·</span>
-        <span className="opacity-90">Up to 40% off selected items</span>
-        <Link
-          href="#products"
-          className="ml-2 inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline"
-        >
-          Shop now
-          <ArrowRight className="size-3.5" />
-        </Link>
-      </div>
+      <PromoBar />
 
       <section className="relative overflow-hidden border-b">
         <div
           className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,var(--color-muted),transparent)]"
           aria-hidden
         />
-        <div className="max-w-7xl mx-auto px-4 pt-10 pb-8 md:pt-14 md:pb-10">
-          <div className="mb-8 max-w-2xl">
-            <Badge variant="secondary" className="mb-4">
-              New season · Just dropped
-            </Badge>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Style that fits
-              <span className="block text-muted-foreground">your everyday.</span>
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-              Discover curated essentials, limited drops, and customer favorites
-              — delivered fast with secure checkout.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button size="lg" asChild>
-                <Link href="#products">
-                  Browse collection
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/products">View all products</Link>
-              </Button>
+        <div className="mx-auto max-w-7xl px-4 py-10 md:py-14">
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
+            <div className="max-w-xl">
+              <Badge variant="secondary" className="mb-4">
+                New season · Just dropped
+              </Badge>
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-5xl xl:text-6xl">
+                Style that fits
+                <span className="block text-muted-foreground">
+                  your everyday.
+                </span>
+              </h1>
+              <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                Discover curated essentials, limited drops, and customer
+                favorites — delivered fast with secure checkout.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button size="lg" asChild>
+                  <Link href="#products">
+                    Shop new arrivals
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button variant="link" size="lg" className="px-2" asChild>
+                  <Link href="/products">View all products</Link>
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <HeroCarousel featured={featured} />
+            <HeroCarousel featured={featured} />
+          </div>
         </div>
       </section>
 
@@ -135,7 +129,7 @@ export default async function HomePage() {
               : "Categories will appear as products load."}
           </p>
         </div>
-        <CategoryPills categories={categories} />
+        <CategoryTiles categories={categories} products={products} />
       </section>
 
       <section
@@ -165,7 +159,14 @@ export default async function HomePage() {
             </Link>
           </Button>
         </div>
-        <ProductsGrid products={products} />
+        <ProductsGrid products={products.slice(0, 8)} />
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          Loved by thousands —{" "}
+          <span className="font-medium text-foreground">
+            4.8★ average · 2,400+ reviews
+          </span>{" "}
+          from verified shoppers.
+        </p>
       </section>
 
       <section className="max-w-7xl mx-auto w-full px-4 pb-16">

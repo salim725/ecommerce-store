@@ -50,7 +50,7 @@ export default function OrderReview({
       });
       dispatch(clearCart());
       localStorage.removeItem("guest_cart");
-      toast.success("Order placed successfully! 🎉");
+      toast.success("Order placed successfully");
       router.push(`/orders/${res.data.order._id}`);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to place order"));
@@ -61,64 +61,63 @@ export default function OrderReview({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Review Your Order</h2>
+      <h2 className="text-xl font-bold">Review your order</h2>
 
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item._id} className="flex justify-between text-sm">
-            <span>
-              {item.product.name}{" "}
-              <span className="text-muted-foreground">× {item.quantity}</span>
-            </span>
-            <span className="font-medium">
-              {formatPrice(item.product.price * item.quantity)}
-            </span>
-          </div>
-        ))}
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {items.length} {items.length === 1 ? "item" : "items"} ·{" "}
+        {formatPrice(total)} total
+      </p>
 
       <Separator />
 
       <div>
-        <p className="text-sm font-semibold mb-1">Shipping to:</p>
+        <p className="mb-1 text-sm font-semibold">Shipping to</p>
         <p className="text-sm text-muted-foreground">
           {shippingData.fullName}, {shippingData.address},{" "}
           {shippingData.city}, {shippingData.country} {shippingData.postalCode}
         </p>
+        <p className="mt-1 text-sm text-muted-foreground">{shippingData.phone}</p>
       </div>
 
       <Separator />
 
       <div>
-        <p className="text-sm font-semibold mb-1">Payment:</p>
+        <p className="mb-1 text-sm font-semibold">Payment</p>
         <p className="text-sm text-muted-foreground">
           Simulated card — {maskCardNumber(paymentData.cardNumber)}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="mt-1 text-xs text-muted-foreground">
           {paymentData.cardName} · Expires {paymentData.expiry}
         </p>
       </div>
 
       <Separator />
 
-      <div className="flex justify-between font-bold text-lg">
-        <span>Total</span>
-        <span>{formatPrice(total)}</span>
-      </div>
+      <OrderTotalRow total={total} />
 
       <div className="flex gap-3">
-        <Button variant="outline" className="flex-1" onClick={onBack}>
-          ← Back
+        <Button variant="outline" className="flex-1 min-h-11" onClick={onBack}>
+          Back
         </Button>
         <Button
-          className="flex-1"
+          className="flex-1 min-h-11"
           size="lg"
           onClick={handlePlaceOrder}
           disabled={isLoading}
+          aria-busy={isLoading}
         >
-          {isLoading ? "Placing Order..." : "Place Order ✓"}
+          {isLoading ? "Placing order…" : "Place order"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function OrderTotalRow({ total }: { total: number }) {
+  return (
+    <div className="flex justify-between text-lg font-bold">
+      <span>Total</span>
+      <span>{formatPrice(total)}</span>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useAppSelector } from "@/src/store/hooks";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag } from "lucide-react";
 import { formatPrice } from "@/src/shared/utils/formatPrice";

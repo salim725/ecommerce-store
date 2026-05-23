@@ -1,22 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { logout } from "@/src/features/auth/slices/authSlice";
-import { clearCart, loadGuestCart } from "@/src/features/cart/slices/cartSlice"; 
+import { clearCart, loadGuestCart } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
-import { ShoppingCart } from "lucide-react";
+import { Menu, Search, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { selectCartCount } from "@/src/features/cart/slices/cartSlice";
+import { setMiniCartOpen } from "@/src/store/slices/uiSlice";
+import { SearchInput } from "@/src/shared/components/SearchInput";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const cartCount = useAppSelector(selectCartCount);
-  //Reads auth state to decide what to show. Reads cart item count for the badge.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const handleLogout = async () => {
     await dispatch(logout());
     dispatch(clearCart());
@@ -24,78 +35,183 @@ export default function Navbar() {
     toast.success("Logged out successfully");
   };
 
-  const navLinks = (
+  const accountControls = isAuthenticated ? (
     <>
-      <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-      <Link href="/products" className="hover:text-primary transition-colors">Products</Link>
+      <Avatar className="hidden size-8 sm:flex">
+        <AvatarFallback>{user?.name?.[0]?.toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+        <Link href="/profile">Account</Link>
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleLogout}
+        className="hidden sm:inline-flex"
+      >
+        Logout
+      </Button>
+    </>
+  ) : (
+    <>
+      <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+        <Link href="/login">Login</Link>
+      </Button>
+      <Button size="sm" asChild className="hidden sm:inline-flex">
+        <Link href="/register">Register</Link>
+      </Button>
+    </>
+  );
+
+  const mobileNavLinks = (
+    <>
+      <Link
+        href="/"
+        className="text-base hover:text-primary transition-colors"
+        onClick={() => setMenuOpen(false)}
+      >
+        Home
+      </Link>
+      <Link
+        href="/products"
+        className="text-base hover:text-primary transition-colors"
+        onClick={() => setMenuOpen(false)}
+      >
+        Shop
+      </Link>
     </>
   );
 
   return (
-    <nav className="border-b px-4 py-3 flex items-center justify-between sticky top-0 bg-background z-50">
-      {/* Logo */}
-      <Link href="/" className="text-xl font-bold">🛍 Storefront</Link>
-
-      {/* Desktop nav links */}
-      <div className="hidden md:flex items-center gap-6">
-        {navLinks}
-      </div>
-
-      {/* Right side — cart + auth */}
-      <div className="flex items-center gap-3">
-        {/* Cart icon with badge */}
-        <Link href="/cart" className="relative">
-          <ShoppingCart className="w-5 h-5" />
-          {cartCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              {cartCount}
-            </span>
-          )}
+    <header className="sticky top-0 z-50 border-b bg-background/90 backdrop-blur supports-backdrop-filter:bg-background/80">
+      <nav
+        className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4"
+        aria-label="Main"
+      >
+        <Link
+          href="/"
+          className="shrink-0 text-lg font-semibold tracking-tight text-foreground"
+        >
+          Everyday Edit
         </Link>
 
-        {/* Auth buttons */}
-        {isAuthenticated ? (
-          <div className="hidden md:flex items-center gap-2">
-            <Avatar className="w-8 h-8">
-              <AvatarFallback>{user?.name?.[0]?.toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/profile">Account</Link>
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
-          </div>
-        ) : (
-          <div className="hidden md:flex gap-2">
-            <Button variant="outline" size="sm" asChild><Link href="/login">Login</Link></Button>
-            <Button size="sm" asChild><Link href="/register">Register</Link></Button>
-          </div>
-        )}
+        <Link
+          href="/products"
+          className="hidden shrink-0 text-sm font-medium hover:text-primary transition-colors md:inline"
+        >
+          Shop
+        </Link>
 
-        {/* Mobile hamburger menu */}
-        <Sheet>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon"><Menu className="w-5 h-5" /></Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="flex flex-col gap-4 pt-10">
-            {navLinks}
-            {isAuthenticated ? (
-              <>
-                <Button variant="outline" asChild>
-                  <Link href="/profile">Account</Link>
-                </Button>
-                <Button variant="outline" onClick={handleLogout}>Logout</Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" asChild><Link href="/login">Login</Link></Button>
-                <Button asChild><Link href="/register">Register</Link></Button>
-              </>
+        <div className="hidden min-w-0 flex-1 md:block md:max-w-md">
+          <Suspense
+            fallback={
+              <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+            }
+          >
+            <SearchInput />
+          </Suspense>
+        </div>
+
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="min-h-11 min-w-11 md:hidden"
+                aria-label="Open search"
+              >
+                <Search className="size-5" aria-hidden />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="top" className="px-4 pb-6">
+              <SheetHeader>
+                <SheetTitle>Search</SheetTitle>
+              </SheetHeader>
+              <Suspense fallback={null}>
+                <SearchInput
+                  autoFocus
+                  onNavigate={() => setSearchOpen(false)}
+                />
+              </Suspense>
+            </SheetContent>
+          </Sheet>
+
+          <button
+            type="button"
+            onClick={() => dispatch(setMiniCartOpen(true))}
+            className={cn(
+              "relative flex min-h-11 min-w-11 items-center justify-center rounded-md",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             )}
-          </SheetContent>
-        </Sheet>
-      </div>
-    </nav>
+            aria-label={
+              cartCount > 0 ? `Cart, ${cartCount} items` : "Cart, empty"
+            }
+          >
+            <ShoppingCart className="size-5" aria-hidden />
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-0.5 -right-0.5 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-primary-foreground"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
+          </button>
+
+          <div className="hidden items-center gap-2 md:flex">
+            {accountControls}
+          </div>
+
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="min-h-11 min-w-11 md:hidden"
+                aria-label="Open menu"
+              >
+                <Menu className="size-5" aria-hidden />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="flex flex-col gap-4 pt-10">
+              {mobileNavLinks}
+              {isAuthenticated ? (
+                <>
+                  <Button variant="outline" asChild>
+                    <Link href="/profile" onClick={() => setMenuOpen(false)}>
+                      Account
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void handleLogout();
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" asChild>
+                    <Link href="/login" onClick={() => setMenuOpen(false)}>
+                      Login
+                    </Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/register" onClick={() => setMenuOpen(false)}>
+                      Register
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </SheetContent>
+          </Sheet>
+        </div>
+      </nav>
+    </header>
   );
 }
-//The Sheet component (from shadcn) is a slide-in drawer used as the mobile menu
-// . On desktop it's hidden, on mobile the hamburger triggers it.
