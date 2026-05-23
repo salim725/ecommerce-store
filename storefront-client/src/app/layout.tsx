@@ -1,22 +1,38 @@
-"use client";  // needed because Provider and ToastContainer use browser APIs
+"use client";
 
+import { useEffect } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/src/store/store";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";  // required — styles for toast popups
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import Navbar from "@/src/shared/components/Navbar";
+import { fetchMe } from "../feature/auth/slices/authSlice";
+
+function AppContent({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // On every page load, try to restore the user session from the saved token
+    const token = localStorage.getItem("sf_token");
+    if (token) {
+      store.dispatch(fetchMe());
+    }
+  }, []);
+
+  return (
+    <>
+      <Navbar />
+      {children}
+    </>
+  );
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="min-h-full flex flex-col antialiased">
-        <Provider store={store}>   {/* makes Redux available to every page/component */}
-          {children}
-          <ToastContainer         // global toast notification container
-            position="top-right"
-            autoClose={3000}      // disappears after 3 seconds
-            theme="light"
-          />
+        <Provider store={store}>
+          <AppContent>{children}</AppContent>
+          <ToastContainer position="top-right" autoClose={3000} theme="light" />
         </Provider>
       </body>
     </html>

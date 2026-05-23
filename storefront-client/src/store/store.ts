@@ -3,12 +3,8 @@ import uiReducer from "@/src/shared/slices/uiSlice";
 
 // Placeholder reducers for features not yet built
 import { createSlice } from "@reduxjs/toolkit";
+import authReducer from "@/src/feature/auth/slices/authSlice"
 
-const authPlaceholder = createSlice({
-  name: "auth",
-  initialState: { user: null, token: null, isLoading: false, error: null, isAuthenticated: false },
-  reducers: {},
-});
 
 const productsPlaceholder = createSlice({
   name: "products",
@@ -25,7 +21,7 @@ const cartPlaceholder = createSlice({
 export const store = configureStore({
   reducer: {
     ui: uiReducer,
-    auth: authPlaceholder.reducer,
+    auth: authReducer,
     products: productsPlaceholder.reducer,
     cart: cartPlaceholder.reducer,
   },
