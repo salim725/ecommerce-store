@@ -3,6 +3,7 @@ import uiReducer from "@/src/shared/slices/uiSlice";
 import authReducer from "@/src/features/auth/slices/authSlice";
 import productsReducer from "@/src/features/products/slices/productsSlice";
 import cartReducer from "@/src/features/cart/slices/cartSlice";
+import profileReducer from "@/src/features/profile/slices/profileSlice";
 
 
 
@@ -13,7 +14,8 @@ export const store = configureStore({
     ui: uiReducer,
     auth: authReducer,
     products: productsReducer,
-    cart: cartReducer
+    cart: cartReducer,
+    profile:profileReducer,
   },
 });
 
