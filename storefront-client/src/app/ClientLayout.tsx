@@ -7,6 +7,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/src/shared/components/Navbar";
 import Footer from "@/src/shared/components/Footer";
+import MiniCartDrawer from "@/src/features/cart/components/MiniCartDrawer";
 import { fetchMe } from "@/src/features/auth/slices/authSlice";
 import { fetchCart, loadGuestCart } from "@/src/features/cart/slices/cartSlice";
 import { getAuthToken } from "@/src/shared/utils/authToken";
@@ -27,6 +28,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       <Navbar />
       <div className="flex-1">{children}</div>
       <Footer />
+      <MiniCartDrawer />
     </>
   );
 }

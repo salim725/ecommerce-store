@@ -19,7 +19,7 @@ export default function PasswordForm() {
   const dispatch = useAppDispatch();
   const { isLoading } = useAppSelector((s) => s.profile);
 
-  const { register, handleSubmit, watch, reset, formState: { errors } } =
+  const { register, handleSubmit, reset, formState: { errors } } =
     useForm<PasswordFormData>();
     const onSubmit = async (data: PasswordFormData) => {
         if (data.newPassword !== data.confirmPassword) {

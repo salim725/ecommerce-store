@@ -1,74 +1,134 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
+import ProductImage from "@/src/shared/components/ProductImage";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { addItem } from "@/src/features/cart/slices/cartSlice";
 import { toast } from "react-toastify";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StarRating } from "@/src/shared/components/StarRating";
 import { formatPrice } from "@/src/shared/utils/formatPrice";
+import { cn } from "@/lib/utils";
 
 import type { Product } from "@/src/features/products/lib/getProductsServer";
 
 export default function ProductCard({ product }: { product: Product }) {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = () => {
-    dispatch(addItem({ product, quantity: 1, isAuthenticated }));
-    toast.success(`${product.name} added to cart 🛒`);
+  const outOfStock = product.stock === 0;
+
+  const handleQuickAdd = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (outOfStock || isAdding) return;
+
+    setIsAdding(true);
+    try {
+      await dispatch(
+        addItem({ product, quantity: 1, isAuthenticated }),
+      ).unwrap();
+      toast.success("Added to cart");
+    } catch {
+      toast.error("Could not add to cart");
+    } finally {
+      setIsAdding(false);
+    }
   };
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Product image */}
-      <Link href={`/products/${product._id}`}>
-        <div className="relative h-52 w-full bg-gray-100">
-          <Image
+    <article
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-xl border bg-card",
+        "transition-shadow hover:shadow-md",
+        "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+      )}
+    >
+      <div className="relative aspect-[4/3] w-full bg-muted">
+        <Link
+          href={`/products/${product._id}`}
+          className="absolute inset-0 block"
+          tabIndex={-1}
+          aria-hidden={outOfStock}
+        >
+          <ProductImage
             src={product.imageUrl}
             alt={product.name}
             fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           />
-        </div>
-      </Link>
+        </Link>
 
-      <CardContent className="p-4 space-y-1">
-        {/* Category badge */}
-        <Badge variant="secondary" className="text-xs">
+        {outOfStock ? (
+          <Badge
+            variant="secondary"
+            className="absolute left-2 top-2 bg-background/90"
+          >
+            Out of stock
+          </Badge>
+        ) : (
+          <div className="pointer-events-none absolute inset-0 hidden bg-black/0 transition-colors group-hover:bg-black/10 md:block" />
+        )}
+
+        {!outOfStock && (
+          <Button
+            type="button"
+            size="icon"
+            className={cn(
+              "absolute bottom-2 right-2 size-10 rounded-full shadow-md",
+              "opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100",
+              "pointer-events-auto md:opacity-0",
+            )}
+            onClick={handleQuickAdd}
+            disabled={isAdding}
+            aria-label={`Quick add ${product.name} to cart`}
+          >
+            <Plus className="size-5" aria-hidden />
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1.5 p-3">
+        <Badge variant="secondary" className="w-fit text-xs capitalize">
           {product.category}
         </Badge>
 
-        {/* Name */}
-        <Link href={`/products/${product._id}`}>
-          <h3 className="font-semibold text-sm hover:underline line-clamp-2">
-            {product.name}
-          </h3>
+        <Link
+          href={`/products/${product._id}`}
+          className="font-semibold text-sm leading-snug line-clamp-2 hover:underline"
+        >
+          {product.name}
         </Link>
 
-        {/* Price */}
-        <p className="text-lg font-bold">{formatPrice(product.price)}</p>
+        <StarRating
+          className="scale-90 origin-left"
+          reviewsHref={`/products/${product._id}#reviews`}
+        />
 
-        {/* Stock status */}
-        {product.stock === 0 && (
-          <Badge variant="destructive">Out of Stock</Badge>
-        )}
-      </CardContent>
+        <p className="mt-auto text-base font-bold text-primary">
+          {formatPrice(product.price)}
+        </p>
 
-      <CardFooter className="p-4 pt-0">
         <Button
-          className="w-full"
-          onClick={handleAddToCart}
-          disabled={product.stock === 0}
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-2 w-full md:hidden"
+          onClick={handleQuickAdd}
+          disabled={outOfStock || isAdding}
         >
-          {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+          {outOfStock
+            ? "Out of stock"
+            : isAdding
+              ? "Adding…"
+              : "Add to cart"}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   );
-  //line-clamp-2 truncates long product names to 2 lines so all cards stay the same height.
-  //  fill on the Image means it fills its container — we control size with the parent div
 }
-//We dispatch addToCart directly from the card — no navigation needed. The cart slice (Step 6) will handle the logic.

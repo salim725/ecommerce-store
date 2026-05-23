@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,94 +16,130 @@ export interface ShippingData {
 }
 
 interface Props {
-  onNext: (data: ShippingData) => void; // pass data up to CheckoutStepper
+  onNext: (data: ShippingData) => void;
+}
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} role="alert" className="mt-1 text-xs text-destructive">
+      {message}
+    </p>
+  );
 }
 
 export default function ShippingForm({ onNext }: Props) {
+  const formId = useId();
   const {
-    register,       // connects input to react-hook-form
-    handleSubmit,   // wraps your onSubmit — validates first, then calls it
+    register,
+    handleSubmit,
     formState: { errors },
   } = useForm<ShippingData>();
-  //react-hook-form handles validation without re-rendering on 
-  // every keystroke — much more performant than useState for forms.
+
+  const field = (name: keyof ShippingData) => {
+    const errorId = `${formId}-${name}-error`;
+    const error = errors[name];
+    return {
+      errorId,
+      inputProps: {
+        "aria-invalid": error ? true : undefined,
+        "aria-describedby": error ? errorId : undefined,
+      },
+    };
+  };
+
   return (
     <form onSubmit={handleSubmit(onNext)} className="space-y-4">
-      <h2 className="text-xl font-bold">Shipping Information</h2>
+      <h2 className="text-xl font-bold">Contact &amp; shipping</h2>
 
       <div>
-        <Label>Full Name</Label>
+        <Label htmlFor={`${formId}-fullName`}>Full Name</Label>
         <Input
+          id={`${formId}-fullName`}
           {...register("fullName", { required: "Full name is required" })}
+          {...field("fullName").inputProps}
           placeholder="John Doe"
         />
-        {errors.fullName && (
-          <p className="text-red-500 text-xs mt-1">{errors.fullName.message}</p>
-        )}
+        <FieldError
+          id={field("fullName").errorId}
+          message={errors.fullName?.message}
+        />
       </div>
 
       <div>
-        <Label>Address</Label>
+        <Label htmlFor={`${formId}-address`}>Address</Label>
         <Input
+          id={`${formId}-address`}
           {...register("address", { required: "Address is required" })}
+          {...field("address").inputProps}
           placeholder="123 Main St"
         />
-        {errors.address && (
-          <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>
-        )}
+        <FieldError
+          id={field("address").errorId}
+          message={errors.address?.message}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>City</Label>
+          <Label htmlFor={`${formId}-city`}>City</Label>
           <Input
+            id={`${formId}-city`}
             {...register("city", { required: "City is required" })}
+            {...field("city").inputProps}
             placeholder="Tel Aviv"
           />
-          {errors.city && (
-            <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
-          )}
+          <FieldError
+            id={field("city").errorId}
+            message={errors.city?.message}
+          />
         </div>
         <div>
-          <Label>Postal Code</Label>
+          <Label htmlFor={`${formId}-postalCode`}>Postal Code</Label>
           <Input
+            id={`${formId}-postalCode`}
             {...register("postalCode", { required: "Postal code is required" })}
+            {...field("postalCode").inputProps}
             placeholder="12345"
           />
-          {errors.postalCode && (
-            <p className="text-red-500 text-xs mt-1">{errors.postalCode.message}</p>
-          )}
+          <FieldError
+            id={field("postalCode").errorId}
+            message={errors.postalCode?.message}
+          />
         </div>
       </div>
 
       <div>
-        <Label>Country</Label>
+        <Label htmlFor={`${formId}-country`}>Country</Label>
         <Input
+          id={`${formId}-country`}
           {...register("country", { required: "Country is required" })}
+          {...field("country").inputProps}
           placeholder="Israel"
         />
-        {errors.country && (
-          <p className="text-red-500 text-xs mt-1">{errors.country.message}</p>
-        )}
+        <FieldError
+          id={field("country").errorId}
+          message={errors.country?.message}
+        />
       </div>
 
       <div>
-        <Label>Phone</Label>
+        <Label htmlFor={`${formId}-phone`}>Phone</Label>
         <Input
+          id={`${formId}-phone`}
           {...register("phone", { required: "Phone is required" })}
+          {...field("phone").inputProps}
           placeholder="+972 50 000 0000"
         />
-        {errors.phone && (
-          <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
-        )}
+        <FieldError
+          id={field("phone").errorId}
+          message={errors.phone?.message}
+        />
       </div>
 
-      <Button type="submit" className="w-full" size="lg">
-        Continue to Payment →
+      <Button type="submit" className="w-full min-h-11" size="lg">
+        Continue to payment
       </Button>
     </form>
   );
 }
-//When the user clicks submit, handleSubmit runs validation first.
-//  If all fields pass → it calls onNext(data)
-//  which passes the shipping data up to the parent CheckoutStepper. No API call yet.

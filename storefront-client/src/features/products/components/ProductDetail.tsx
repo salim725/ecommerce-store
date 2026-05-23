@@ -1,117 +1,200 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { Share2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { addItem } from "@/src/features/cart/slices/cartSlice";
 import type { Product } from "@/src/features/products/lib/getProductsServer";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Minus, Plus } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { formatPrice } from "@/src/shared/utils/formatPrice";
+import { Breadcrumbs } from "@/src/shared/components/Breadcrumbs";
+import { StarRating } from "@/src/shared/components/StarRating";
+import { ProductTrustRow } from "@/src/shared/components/ProductTrustRow";
+import { QuantityStepper } from "@/src/shared/components/QuantityStepper";
+import ProductGallery from "@/src/features/products/components/ProductGallery";
+import ProductReviews from "@/src/features/products/components/ProductReviews";
+import { StickyAddToCartBar } from "@/src/shared/components/StickyAddToCartBar";
+
+function getValueProps(description?: string): string[] {
+  if (description) {
+    const firstSentence = description.split(/[.!?]/)[0]?.trim();
+    if (firstSentence && firstSentence.length > 10) {
+      return [firstSentence];
+    }
+  }
+  return [
+    "Thoughtfully curated for everyday wear",
+    "Quality materials, designed to last",
+    "Free shipping on orders over $50",
+  ];
+}
 
 export default function ProductDetail({ product }: { product: Product }) {
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
 
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = () => {
-    dispatch(addItem({ product, quantity, isAuthenticated }));
-    toast.success(`${product.name} added to cart 🛒`);
+  const valueProps = getValueProps(product.description);
+  const inStock = product.stock > 0;
+
+  const handleAddToCart = async () => {
+    setIsAdding(true);
+    try {
+      await dispatch(
+        addItem({ product, quantity, isAuthenticated }),
+      ).unwrap();
+      toast.success("Added to cart");
+    } catch {
+      toast.error("Could not add to cart. Please try again.");
+    } finally {
+      setIsAdding(false);
+    }
   };
 
-  const decreaseQty = () => setQuantity((q) => Math.max(1, q - 1));
-  const increaseQty = () =>
-    setQuantity((q) => Math.min(product.stock, q + 1));
+  const handleShare = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: product.name,
+          text: product.description,
+          url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      }
+    } catch {
+      /* user cancelled share */
+    }
+  };
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-10">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
+    <main className="mx-auto max-w-6xl px-4 py-8 pb-28 md:pb-10">
+      <div className="grid gap-10 lg:grid-cols-[3fr_2fr] lg:gap-12">
+        <ProductGallery
+          name={product.name}
+          imageUrl={product.imageUrl}
+          images={product.images}
+        />
 
-      <div className="grid md:grid-cols-2 gap-10">
-        <div className="relative h-80 md:h-96 rounded-xl overflow-hidden bg-gray-100">
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover"
-            priority
+        <div className="space-y-5">
+          <Breadcrumbs
+            category={product.category}
+            productName={product.name}
           />
-        </div>
 
-        <div className="space-y-4">
-          <Badge variant="secondary">{product.category}</Badge>
+          <Badge variant="secondary" className="capitalize">
+            {product.category}
+          </Badge>
 
-          <h1 className="text-2xl md:text-3xl font-bold">{product.name}</h1>
-
-          <p className="text-2xl font-bold text-primary">
-            {formatPrice(product.price)}
-          </p>
-
-          {product.description && (
-            <p className="text-muted-foreground leading-relaxed">
-              {product.description}
-            </p>
-          )}
-
-          {product.stock === 0 ? (
-            <Badge variant="destructive" className="text-sm">
-              Out of Stock
-            </Badge>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {product.stock} items left in stock
-            </p>
-          )}
-
-          {product.stock > 0 && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium">Quantity:</span>
-              <div className="flex items-center border rounded-lg">
-                <button
-                  type="button"
-                  onClick={decreaseQty}
-                  className="p-2 hover:bg-muted transition-colors"
-                  disabled={quantity <= 1}
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="px-4 py-2 font-medium min-w-[3rem] text-center">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={increaseQty}
-                  className="p-2 hover:bg-muted transition-colors"
-                  disabled={quantity >= product.stock}
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          <Button
-            size="lg"
-            className="w-full mt-2"
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
+          <h1
+            className="font-semibold tracking-tight"
+            style={{
+              fontSize: "var(--text-xl)",
+              lineHeight: "var(--text-xl--line-height)",
+            }}
           >
-            {product.stock === 0 ? "Out of Stock" : "Add to Cart 🛒"}
-          </Button>
+            {product.name}
+          </h1>
+
+          <StarRating />
+
+          <div className="space-y-1">
+            <p className="text-2xl font-bold text-primary">
+              {formatPrice(product.price)}
+            </p>
+            {inStock ? (
+              <p className="text-sm text-muted-foreground">
+                {product.stock} in stock
+              </p>
+            ) : (
+              <Badge variant="destructive">Out of stock</Badge>
+            )}
+          </div>
+
+          <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+            {valueProps.map((prop) => (
+              <li key={prop}>{prop}</li>
+            ))}
+          </ul>
+
+          {inStock && (
+            <>
+              <QuantityStepper
+                value={quantity}
+                max={product.stock}
+                onChange={setQuantity}
+              />
+
+              <Button
+                size="lg"
+                className="w-full min-h-11"
+                onClick={handleAddToCart}
+                disabled={isAdding}
+                aria-busy={isAdding}
+              >
+                {isAdding ? "Adding…" : "Add to cart"}
+              </Button>
+            </>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-h-11"
+              onClick={handleShare}
+            >
+              <Share2 className="mr-2 size-4" aria-hidden />
+              Share
+            </Button>
+          </div>
+
+          <ProductTrustRow />
         </div>
       </div>
+
+      <div className="mt-12 space-y-10 border-t border-border pt-10">
+        <Accordion type="single" collapsible defaultValue="description">
+          <AccordionItem value="description">
+            <AccordionTrigger>Description</AccordionTrigger>
+            <AccordionContent>
+              {product.description ? (
+                <p className="leading-relaxed text-muted-foreground">
+                  {product.description}
+                </p>
+              ) : (
+                <p className="text-muted-foreground">
+                  No description available for this product.
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <ProductReviews />
+      </div>
+
+      {inStock && (
+        <StickyAddToCartBar
+          productName={product.name}
+          price={product.price}
+          onAddToCart={handleAddToCart}
+          isAdding={isAdding}
+        />
+      )}
     </main>
   );
 }
