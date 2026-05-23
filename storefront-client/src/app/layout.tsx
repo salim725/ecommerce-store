@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 import Navbar from "@/src/shared/components/Navbar";
 import { fetchMe } from "../feature/auth/slices/authSlice";
+import { loadGuestCart, clearCart } from "@/src/feature/cart/slices/cartSlice";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -15,6 +16,8 @@ function AppContent({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("sf_token");
     if (token) {
       store.dispatch(fetchMe());
+    }else{
+      store.dispatch(loadGuestCart()); // load guest cart for non-logged-in users
     }
   }, []);
 

@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { selectCartCount } from "@/src/feature/cart/slices/cartSlice";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const cartCount = useAppSelector((state) => state.cart.items.length);
+  const cartCount = useAppSelector(selectCartCount);
   //Reads auth state to decide what to show. Reads cart item count for the badge.
   const handleLogout = async () => {
     await dispatch(logout());

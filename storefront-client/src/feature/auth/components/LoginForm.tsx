@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { mergeCarts } from "../../cart/slices/cartSlice";
 
 export default function LoginForm() {
   const dispatch = useAppDispatch();
@@ -25,6 +26,10 @@ export default function LoginForm() {
     try {
       await dispatch(login(form)).unwrap();
       toast.success("Welcome back! 👋");
+      await dispatch(login(form)).unwrap();
+      await dispatch(mergeCarts()); // ← merge guest cart into user cart
+      toast.success("Welcome back! 👋");
+      router.push("/");
       router.push("/");
     } catch (err: any) {
       toast.error(err);
@@ -35,11 +40,25 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
       <div>
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          required
+        />
       </div>
       <div>
         <Label htmlFor="password">Password</Label>
-        <Input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={handleChange}
+          required
+        />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Logging in..." : "Login"}
