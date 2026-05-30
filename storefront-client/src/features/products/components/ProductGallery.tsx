@@ -23,10 +23,11 @@ export default function ProductGallery({
   className,
 }: ProductGalleryProps) {
   const galleryImages = images && images.length > 0 ? images : [imageUrl];
+  const hasMultipleImages = galleryImages.length > 1;
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("min-w-0 w-full", className)}>
       <div className="md:hidden">
         <Swiper
           modules={[Pagination]}
@@ -42,8 +43,15 @@ export default function ProductGallery({
         </Swiper>
       </div>
 
-      <div className="hidden md:grid md:grid-cols-[4.5rem_1fr] md:gap-3">
-        {galleryImages.length > 1 && (
+      <div
+        className={cn(
+          "hidden md:grid md:gap-3",
+          hasMultipleImages
+            ? "md:grid-cols-[4.5rem_minmax(0,1fr)]"
+            : "md:grid-cols-1",
+        )}
+      >
+        {hasMultipleImages && (
           <ul className="flex max-h-[32rem] flex-col gap-2 overflow-y-auto">
             {galleryImages.map((src, index) => (
               <li key={`${src}-thumb-${index}`}>
@@ -73,16 +81,25 @@ export default function ProductGallery({
           </ul>
         )}
 
-        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-muted md:min-h-[32rem] md:aspect-auto">
+        <div
+          className={cn(
+            "relative w-full overflow-hidden rounded-xl bg-muted",
+            hasMultipleImages ? "aspect-[4/5]" : "aspect-square max-h-[36rem]",
+          )}
+        >
           <ProductImage
             src={galleryImages[activeIndex] ?? imageUrl}
             alt={
               activeIndex === 0 ? name : `${name} view ${activeIndex + 1}`
             }
             fill
-            className="object-cover"
+            className="object-contain object-center"
             priority={activeIndex === 0}
-            sizes="(max-width: 1024px) 100vw, 60vw"
+            sizes={
+              hasMultipleImages
+                ? "(max-width: 1024px) 100vw, 50vw"
+                : "(max-width: 1024px) 100vw, min(50vw, 36rem)"
+            }
           />
         </div>
       </div>
@@ -105,9 +122,9 @@ function GallerySlide({
         src={src}
         alt={index === 0 ? name : `${name} view ${index + 1}`}
         fill
-        className="object-cover"
+        className="object-contain object-center"
         priority={index === 0}
-        sizes="(max-width: 1024px) calc(100vw - 2rem), min(60vw, 42rem)"
+        sizes="(max-width: 1024px) calc(100vw - 2rem), min(50vw, 36rem)"
       />
     </div>
   );
